@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Members - {{ team.destination }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .member-info {
+            flex-grow: 1;
+        }
+        .admin-label {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h2>Team Members - {{ team.destination }}</h2>
+    <p><strong>Destination:</strong> {{ team.destination }}</p>
+    <p><strong>Max Members:</strong> {{ team.max_members }}</p>
+    <p><strong>Current Members:</strong> {{ team.current_members }}</p>
+
+    <h2>Members</h2>
+    <ul>
+        {% for member in approved_members %}
+            <li>
+                <span class="member-info">
+                    {% if member.id == team.admin_id %}
+                        <span class="admin-label">(Admin)</span>
+                    {% endif %}
+                    Username: {{ member.username }} | Phone: {{ member.phone }}
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Requests</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .request-info {
+            flex-grow: 1;
+        }
+        form {
+            margin-left: 10px;
+        }
+        a, button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Pending Team Requests</h2>
+    <ul>
+        {% for request_id, request_info in requests_dict.items() %}
+            <li>
+                <span class="request-info">
+                    User: {{ request_info['username'] }} wants to join team: {{ request_info['destination'] }}
+                </span>
+                 <form method="POST" action="{{ url_for('approve_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}">
+                    <button type="submit">Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('deny_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}">
+                    <button type="submit">Deny</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+</body>
+</html>

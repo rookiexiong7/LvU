@@ -5,19 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .team-info {
+            flex-grow: 1;
+        }
+        form {
+            margin-left: 10px;
+        }
+        a, button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
-    <h2>Available Teams</h2>
+    <h2>My Managed Teams</h2>
     <ul>
-        {% for team in teams %}
+        {% for team in teams if team.admin_id == current_user.id %}
             <li>
-                {{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})
-                <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
-                    <button type="submit">Join</button>
-                </form>
+                <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+                <a href="{{ url_for('manage_team', team_id=team.id) }}">Manage Team</a>
+                <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a> <!-- 新添加的查看队伍信息按钮 -->
             </li>
         {% endfor %}
     </ul>
+
+    <!-- 新增：查看待处理申请链接 -->
+    <h2>Team Requests</h2>
+    <a href="{{ url_for('team_requests') }}">View Pending Requests</a>
+
+    <h2>My Joined Teams</h2>
+    <ul>
+        {% for team in current_user.teams if team.admin_id != current_user.id %}
+            <li>
+                <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+                <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a> <!-- 新添加的查看队伍信息按钮 -->
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Available Teams</h2>
+    <ul>
+        {% for team in teams if team.admin_id != current_user.id and team not in current_user.teams %}
+            <li>
+                <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+                <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
+                    {% if team.current_members >= team.max_members %}
+                        <button type="submit" disabled>Join</button>
+                    {% else %}
+                        <button type="submit">Join</button>
+                    {% endif %}
+                </form>
+                <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a> <!-- 新添加的查看队伍信息按钮 -->
+            </li>
+        {% endfor %}
+    </ul>
+
     <a href="{{ url_for('create_team') }}">Create New Team</a>
     <a href="{{ url_for('logout') }}">Logout</a>
 </body>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Team</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .team-info {
+            flex-grow: 1;
+        }
+        form {
+            margin-left: 10px;
+        }
+        a, button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h2>Manage Team - {{ team.destination }}</h2>
+    <form id="updateTeamForm" method="POST" action="{{ url_for('manage_team', team_id=team.id) }}">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.destination.label }} {{ form.destination(size=20) }}
+        </div>
+        <div>
+            {{ form.max_members.label }} {{ form.max_members(size=5) }}
+        </div>
+        <button id="updateTeamButton" type="submit">Update Team</button>
+    </form>
+    <h2>Team Members</h2>
+    <ul>
+        {% for member in members %}
+            <li>
+                <span class="member-info">{{ member.username }}</span>
+                {% if member.id != current_user.id %}
+                    <form method="POST" action="{{ url_for('remove_member', team_id=team.id, user_id=member.id) }}">
+                        <button type="submit">Remove</button>
+                    </form>
+                {% else %}
+                    <button type="button" disabled>Remove</button>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+
+    <script>
+        document.getElementById("updateTeamForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            // Simulate successful update with alert
+            alert("Team updated successfully!");
+            // Submit form
+            this.submit();
+        });
+    </script>
+</body>
+</html>
