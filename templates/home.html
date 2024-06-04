@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- 引入 Bootstrap CSS 实现弹窗 -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,6 +42,34 @@
     </style>
 </head>
 <body>
+    <!-- 弹窗模态框 -->
+    <div class="modal fade" id="flashModal" tabindex="-1" role="dialog" aria-labelledby="flashModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="flashModalLabel">Notification</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="flashes">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <li class="{{ category }}">{{ message }}</li>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h2>My Managed Teams</h2>
     <ul>
         {% for team in teams if team.admin_id == current_user.id %}
@@ -55,9 +85,9 @@
     <h2>Team Requests</h2>
     <a href="{{ url_for('team_requests') }}">View Pending Requests</a>
 
-    <h2>My Joined Teams</h2>
+    <h2>审核通过的队伍</h2>
     <ul>
-        {% for team in current_user.teams if team.admin_id != current_user.id %}
+        {% for team in approved_teams %}
             <li>
                 <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
                 <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a> <!-- 新添加的查看队伍信息按钮 -->
@@ -65,7 +95,17 @@
         {% endfor %}
     </ul>
 
-    <h2>Available Teams</h2>
+    <h2>申请待审核的队伍</h2>
+    <ul>
+        {% for team in pending_teams %}
+            <li>
+                <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+                <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a> <!-- 新添加的查看队伍信息按钮 -->
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>可加入的队伍</h2>
     <ul>
         {% for team in teams if team.admin_id != current_user.id and team not in current_user.teams %}
             <li>
@@ -84,5 +124,17 @@
 
     <a href="{{ url_for('create_team') }}">Create New Team</a>
     <a href="{{ url_for('logout') }}">Logout</a>
+
+    <!-- 引入 Bootstrap JS 和 jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            if ($('.flashes li').length > 0) {
+                $('#flashModal').modal('show');
+            }
+        });
+    </script>
 </body>
 </html>

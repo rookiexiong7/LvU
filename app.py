@@ -30,15 +30,6 @@ def load_user(user_id):
 # 用户注册
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    # form = RegistrationForm()
-    # if form.validate_on_submit():
-    #     hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-    #     user = User(username=form.username.data, password=hashed_password)
-    #     db.session.add(user)
-    #     db.session.commit()
-    #     flash('Your account has been created!', 'success')
-    #     return redirect(url_for('login'))
-    # return render_template('register.html', form=form)
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, password=form.password.data)
@@ -53,14 +44,6 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    # if form.validate_on_submit():
-    #     user = User.query.filter_by(username=form.username.data).first()
-    #     if user and bcrypt.check_password_hash(user.password, form.password.data):
-    #         login_user(user, remember=True)
-    #         return redirect(url_for('home'))
-    #     else:
-    #         flash('Login Unsuccessful. Please check username and password', 'danger')
-    # return render_template('login.html', form=form)
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.password == form.password.data:
@@ -82,17 +65,14 @@ def create_team():
         team = Team(
             destination=form.destination.data,
             max_members=form.max_members.data,
-            current_members=0,
-            public_id=user.id,     # 使用 user 对象作为 public
-            admin_id=user.id       # 使用 user 对象作为 admin
+            current_members=1,     # 创建时包含队伍创建者
+            public_id=user.id,     # 记录队伍创建者
+            admin_id=user.id       # 初始化管理员为队伍创建者
         )
         db.session.add(team)
+        db.session.flush()  # 刷新 session 以获取新创建的 team.id
 
-        # 将队伍创建者加入到队伍中
-        user.teams.append(team)
-        team.current_members += 1
-
-        # 更新user_team表中的audit_status字段
+        # 将队伍创建者加入到队伍中, 并设置 audit_status 为 1
         db.session.execute(
             text('INSERT INTO user_team (team_id, join_user_id, audit_status) VALUES (:team_id, :user_id, :audit_status)'),
             {'team_id': team.id, 'user_id': user.id, 'audit_status': 1}
@@ -108,23 +88,6 @@ def create_team():
 @app.route('/join_team/<int:team_id>', methods=['POST'])
 @login_required
 def join_team(team_id):
-    # team = Team.query.get_or_404(team_id)
-    # user = current_user
-    #
-    # if team in user.teams:
-    #     flash('You have already joined this team.')
-    #     return redirect(url_for('home'))
-    #
-    # if team.current_members >= team.max_members:
-    #     flash('This team is full.')
-    #     return redirect(url_for('home'))
-    #
-    # team.current_members += 1
-    # user.teams.append(team)
-    # db.session.commit()
-    #
-    # flash('You have successfully joined the team.')
-    # return redirect(url_for('home'))
     team = Team.query.get_or_404(team_id)
     user = current_user
 
@@ -141,7 +104,7 @@ def join_team(team_id):
     db.session.execute(ins)
     db.session.commit()
 
-    flash('Join request sent to the team admin.')
+    flash('Join request sent to the team admin.', 'success')
     return redirect(url_for('home'))
 
 
@@ -164,7 +127,7 @@ def approve_request(join_user_id, team_id):
     team.current_members += 1
     db.session.commit()
 
-    flash('Request approved.')
+    flash('Request approved successfully!', 'success')
     return redirect(url_for('team_requests'))
 
 
@@ -185,7 +148,7 @@ def deny_request(join_user_id, team_id):
     db.session.execute(stmt)
     db.session.commit()
 
-    flash('Request denied.')
+    flash('Request denied successfully!', 'success')
     return redirect(url_for('team_requests'))
 
 
@@ -238,7 +201,18 @@ def logout():
 @app.route('/home')
 def home():
     teams = Team.query.all()
-    return render_template('home.html', teams=teams)
+    current_user_teams = current_user.teams
+    approved_teams = []
+    pending_teams = []
+
+    for team in current_user_teams:
+        membership = db.session.query(team_membership).filter_by(join_user_id=current_user.id, team_id=team.id).first()
+        if membership.audit_status == 1:
+            approved_teams.append(team)
+        elif membership.audit_status == 0:
+            pending_teams.append(team)
+
+    return render_template('home.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams)
 
 
 # 队伍成员查看队伍信息
@@ -259,19 +233,30 @@ def view_team(team_id):
 def manage_team(team_id):
     team = Team.query.get_or_404(team_id)
     if team.admin_id != current_user.id:
-        flash('You do not have permission to manage this team.')
+        flash('You do not have permission to manage this team.', 'danger')
         return redirect(url_for('home'))
 
     form = ManageTeamForm(obj=team)
 
     if form.validate_on_submit():
-        team.destination = form.destination.data
-        team.max_members = form.max_members.data
-        db.session.commit()
-        flash('Team information updated successfully!', 'success')
+        if form.max_members.data < team.current_members:   # 判断设置的最大人数是否小于当前队伍中的人数
+            flash(
+                f'无法将队伍的最大人数设置为{form.max_members.data}，因为它小于当前的队伍人数 {team.current_members}.',
+                'danger')
+        else:
+            team.destination = form.destination.data
+            team.max_members = form.max_members.data
+            db.session.commit()
+            flash('成功更新队伍信息！', 'success')
+
         return redirect(url_for('manage_team', team_id=team.id))
 
-    members = team.members
+    # 只获取审核通过的成员
+    members = db.session.query(User).join(team_membership).filter(
+        team_membership.c.team_id == team.id,
+        team_membership.c.audit_status == 1
+    ).all()
+
     return render_template('manage_team.html', team=team, form=form, members=members)
 
 
@@ -284,7 +269,7 @@ def remove_member(team_id, user_id):
 
     # 检查当前用户是否是队伍管理员
     if team.admin_id != current_user.id:
-        flash('You do not have permission to remove members from this team.')
+        flash('You do not have permission to remove members from this team now.')
         return redirect(url_for('manage_team', team_id=team_id))
 
     # 检查要删除的用户是否是队伍管理员本人
@@ -297,7 +282,29 @@ def remove_member(team_id, user_id):
         team.current_members -= 1
         db.session.commit()
         flash('Member removed successfully!', 'success')
+
     return redirect(url_for('manage_team', team_id=team_id))
+
+
+# 管理员移交管理员权限
+@app.route('/transfer_admin/<int:team_id>/<int:user_id>', methods=['POST'])
+@login_required
+def transfer_admin(team_id, user_id):
+    team = Team.query.get_or_404(team_id)
+    if team.admin_id != current_user.id:
+        flash('You do not have permission to transfer admin rights for this team.', 'danger')
+        return redirect(url_for('home'))
+
+    new_admin = User.query.get_or_404(user_id)
+    if new_admin not in team.members:
+        flash('This user is not a member of the team.', 'danger')
+        return redirect(url_for('manage_team', team_id=team.id))
+
+    team.admin_id = new_admin.id
+    db.session.commit()
+
+    flash(f'Admin rights transferred to {new_admin.username}.', 'success')
+    return redirect(url_for('manage_team', team_id=team.id))
 
 
 if __name__ == '__main__':
