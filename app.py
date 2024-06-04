@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
+from sqlalchemy import text
+
 from forms import RegistrationForm, LoginForm, TeamForm
 from forms import ManageTeamForm  # 新增管理队伍的表单
 from models import db, User, Team, team_membership
@@ -92,7 +94,7 @@ def create_team():
 
         # 更新user_team表中的audit_status字段
         db.session.execute(
-            'INSERT INTO user_team (team_id, join_user_id, audit_status) VALUES (:team_id, :user_id, :audit_status)',
+            text('INSERT INTO user_team (team_id, join_user_id, audit_status) VALUES (:team_id, :user_id, :audit_status)'),
             {'team_id': team.id, 'user_id': user.id, 'audit_status': 1}
         )
 
