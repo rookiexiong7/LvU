@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Teams</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-info {
+            flex-grow: 1;
+        }
+
+        form {
+            margin-left: 10px;
+        }
+
+        a,
+        button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Available Teams to Join</h2>
+    <ul>
+        {% for team in teams if team.admin_id != current_user.id and team not in current_user.teams %}
+        <li>
+            <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+            <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
+                {% if team.current_members >= team.max_members %}
+                <button type="submit" disabled>Join</button>
+                {% else %}
+                <button type="submit">Join</button>
+                {% endif %}
+            </form>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('manage_teams') }}">Back to Manage Teams</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}""></script>
+    <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
+</body>
+
+</html>

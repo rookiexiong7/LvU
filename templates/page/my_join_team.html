@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- 引入 Bootstrap CSS 实现弹窗 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-info {
+            flex-grow: 1;
+        }
+
+        form {
+            margin-left: 10px;
+        }
+
+        a,
+        button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 弹窗模态框 -->
+    <div class="modal fade" id="flashModal" tabindex="-1" role="dialog" aria-labelledby="flashModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="flashes">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>我加入的队伍</h2>
+    <ul>
+        {% for team in approved_teams %}
+        <li>
+            <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍成员信息</a> <!-- 新添加的查看队伍信息按钮 -->
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- 引入 Bootstrap JS 和 jQuery -->
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}""></script>
+    <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
+    <script>
+        $(document).ready(function () {
+            if ($('.flashes li').length > 0) {
+                $('#flashModal').modal('show');
+            }
+        });
+    </script>
+</body>
+
+</html>

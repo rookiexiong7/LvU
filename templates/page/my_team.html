@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Teams</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-info {
+            flex-grow: 1;
+        }
+
+        a {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 弹窗模态框 -->
+    <div class="modal fade" id="flashModal" tabindex="-1" role="dialog" aria-labelledby="flashModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="flashes">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>My Managed Teams</h2>
+    <ul>
+        {% for team in teams if team.admin_id == current_user.id %}
+        <li>
+            <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+            <a href="{{ url_for('manage_team', team_id=team.id) }}">Manage Team</a>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">View Members</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('create_team') }}">Create New Team</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}""></script>
+    <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
+    <script>
+        $(document).ready(function () {
+            if ($('.flashes li').length > 0) {
+                $('#flashModal').modal('show');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Requests</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .request-info {
+            flex-grow: 1;
+        }
+
+        form {
+            margin-left: 10px;
+        }
+
+        a,
+        button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 成功消息弹窗 -->
+    <div class="modal fade" id="flashModal" tabindex="-1" role="dialog" aria-labelledby="flashModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="flashes">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2>待处理的申请</h2>
+    <ul>
+        {% for request_id, request_info in requests_dict.items() %}
+        <li>
+            <span class="request-info">
+                {{ request_info['username'] }}想要加入前往{{ request_info['destination'] }}的队伍
+            </span>
+            <form method="POST"
+                action="{{ url_for('approve_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}">
+                <button type="submit">同意</button>
+            </form>
+            <form method="POST"
+                action="{{ url_for('deny_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}">
+                <button type="submit">拒绝</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- 引入 Bootstrap JS -->
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}""></script>
+    <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
+    <script>
+        $(document).ready(function () {
+            if ($('.flashes li').length > 0) {
+                $('#flashModal').modal('show');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+{
+  "homeInfo": {
+    "title": "首页",
+    "href": "home"
+  },
+  "logoInfo": {
+    "title": "驴友辅助系统",
+    "image": "../static/images/logo.png",
+    "href": ""
+  },
+  "menuInfo": [
+    {
+      "title": "驴友辅助系统",
+      "icon": "fa fa-address-book",
+      "href": "home",
+      "target": "_self",
+      "child": [
+        {
+          "title": "我的队伍",
+          "icon": "fa fa-window-maximize",
+          "href": "home",
+          "target": "_self",
+          "child": [
+            {
+              "title": "管理的队伍",
+              "icon": "fa fa-stumbleupon-circle",
+              "href": "my_manage_team",
+              "target": "_self"
+            },
+            {
+              "title": "加入的队伍",
+              "icon": "fa fa-tags",
+              "href": "my_join_team",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "加入队伍",
+          "icon": "fa fa-gears",
+          "href": "joinable_teams",
+          "target": "_self"
+        },
+        {
+          "title": "申请管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "发送申请",
+              "icon": "fa fa-list-alt",
+              "href": "sending_requests",
+              "target": "_self"
+            },
+            {
+              "title": "收到申请",
+              "icon": "fa fa-navicon",
+              "href": "team_requests",
+              "target": "_self"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建队伍</title>
+</head>
+
+<body>
+    <h2>创建队伍</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            目的地：{{ form.destination(size=32) }}
+        </div>
+        <div>
+            最大人数： {{ form.max_members() }}
+        </div>
+        <div>
+            <button type="submit">创建</button>
+        </div>
+    </form>
+    <a href="{{ url_for('home') }}">退出</a>
+</body>
+
+</html>

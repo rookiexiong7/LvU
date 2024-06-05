@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <h2>Admin Dashboard</h2>
+    <h3>Your Teams</h3>
+    <ul>
+        {% for team in teams %}
+        <li>{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('create_team') }}">Create New Team</a>
+    <a href="{{ url_for('home') }}">Home</a>
+</body>
+
+</html>
