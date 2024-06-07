@@ -5,23 +5,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>创建队伍</title>
+    <style>
+        .layui-form-item .layui-input-company {
+            width: auto;
+            padding-right: 10px;
+            line-height: 38px;
+        }
+
+        .centered-link {
+            display: block;
+            text-align: center;
+            color: blue;
+            text-decoration: underline;
+            font-size: large;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/layui-v2.6.3/css/layui.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layuimini.css') }}?v=2.0.4.2" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/default.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/font-awesome-4.7.0/css/font-awesome.min.css') }}"
+        media="all">
 </head>
 
 <body>
-    <h2>创建队伍</h2>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div>
-            目的地：{{ form.destination(size=32) }}
+    <div class="layuimini-container layuimini-page-anim">
+        <div class="layuimini-main">
+
+            <div class="layui-form layuimini-form">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">目的地<span style="color: red;">*</span></label>
+                        <div class="layui-input-block">
+                            {{ form.destination(class_='layui-input', placeholder='请输入目的地') }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">出发地点</label>
+                        <div class="layui-input-block">
+                            {{ form.departure_location(class_='layui-input', placeholder='请输入出发地点',required=false) }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">出行方式</label>
+                        <div class="layui-input-block">
+                            {{ form.travel_mode(class_='layui-input', placeholder='请输入出行方式',required=false) }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">队伍类型<span style="color: red;">*</span></label>
+                        <div class="layui-input-block">
+                            {{ form.team_type(class_='layui-input', placeholder='请输入队伍类型') }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">游玩时间<span style="color: red;">*</span></label>
+                        <div class="layui-input-block">
+                            {{ form.travel_time(class_='layui-input', placeholder='请输入游玩时间') }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">旅游预算<span style="color: red;">*</span></label>
+                        <div class="layui-input-block">
+                            {{ form.travel_budget(class_='layui-input', placeholder='请输入旅游预算') }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">最大人数<span style="color: red;">*</span></label>
+                        <div class="layui-input-block">
+                            {{ form.max_members(class_='layui-input', placeholder='请输入最大人数') }}
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn layui-btn-normal" type="submit">创建队伍</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
         </div>
-        <div>
-            最大人数： {{ form.max_members() }}
-        </div>
-        <div>
-            <button type="submit">创建</button>
-        </div>
-    </form>
-    <a href="{{ url_for('my_manage_team') }}">退出</a>
+    </div>
+
+    <script>
+        layui.use(['form', 'miniPage'], function () {
+            var form = layui.form,
+                layer = layui.layer,
+                miniPage = layui.miniPage;
+
+            form.render();
+
+            //监听提交
+            form.on('submit(saveBtn)', function (data) {
+                var index = layer.alert(JSON.stringify(data.field), {
+                    title: '最终的提交信息'
+                }, function () {
+                    layer.close(index);
+                    miniPage.hashHome();
+                });
+                return false;
+            });
+        });
+    </script>
+    <div class="centered-link">
+        <a href="{{ url_for('my_manage_team') }}">退出</a>
+    </div>
 </body>
 
 </html>

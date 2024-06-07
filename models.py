@@ -6,9 +6,13 @@ db = SQLAlchemy()
 
 # 中间表，用于存储用户和队伍的关系
 team_membership = db.Table('user_team',
-                           db.Column('join_user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-                           db.Column('team_id', db.Integer, db.ForeignKey('team.id'), primary_key=True),
-                           db.Column('audit_status', db.Integer, default=0, nullable=False)  # 0: pending, 1: approved, 2: denied
+                           db.Column('join_user_id', db.Integer, db.ForeignKey(
+                               'user.id'), primary_key=True),
+                           db.Column('team_id', db.Integer, db.ForeignKey(
+                               'team.id'), primary_key=True),
+                           # 0: pending, 1: approved, 2: denied
+                           db.Column('audit_status', db.Integer,
+                                     default=0, nullable=False)
                            )
 
 
@@ -40,3 +44,5 @@ class Team(db.Model):
     # # 定义了两个关系属性 admin 和 public, 其分别表示了队伍的管理员和创建者。
     # admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('owned_teams', lazy=True))
     # public = db.relationship('User', foreign_keys=[public_id], backref=db.backref('created_teams', lazy=True))
+
+

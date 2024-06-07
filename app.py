@@ -92,6 +92,11 @@ def create_team():
         print(f"Creating team with public_id and admin_id set to: {user.id}")
         team = Team(
             destination=form.destination.data,
+            departure_location=form.departure_location.data,
+            travel_mode=form.travel_mode.data,
+            team_type=form.team_type.data,
+            travel_time=form.travel_time.data,
+            travel_budget=form.travel_budget.data,
             max_members=form.max_members.data,
             current_members=1,  # 创建时包含队伍创建者
             public_id=user.id,  # 记录队伍创建者
