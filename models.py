@@ -6,9 +6,13 @@ db = SQLAlchemy()
 
 # 中间表，用于存储用户和队伍的关系
 team_membership = db.Table('user_team',
-                           db.Column('join_user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-                           db.Column('team_id', db.Integer, db.ForeignKey('team.id'), primary_key=True),
-                           db.Column('audit_status', db.Integer, default=0, nullable=False)  # 0: pending, 1: approved, 2: denied
+                           db.Column('join_user_id', db.Integer, db.ForeignKey(
+                               'user.id'), primary_key=True),
+                           db.Column('team_id', db.Integer, db.ForeignKey(
+                               'team.id'), primary_key=True),
+                           # 0: pending, 1: approved, 2: denied
+                           db.Column('audit_status', db.Integer,
+                                     default=0, nullable=False)
                            )
 
 
@@ -17,20 +21,27 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     phone = db.Column(db.String(20))
-    teams = db.relationship('Team', secondary=team_membership, backref=db.backref('members', lazy='dynamic'))
+    teams = db.relationship('Team', secondary=team_membership,
+                            backref=db.backref('members', lazy='dynamic'))
 
 
 class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    destination = db.Column(db.String(150), nullable=False)
-    max_members = db.Column(db.Integer, nullable=False)
-    current_members = db.Column(db.Integer, default=0, nullable=False)
-    public_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # # 定义了两个关系属性 admin 和 public, 其分别表示了队伍的管理员和创建者。
-    # # 这样当设置 public_id 和 admin_id 为用户对象时，SQLAlchemy 会自动处理关系的关联, 防止报错
-    # admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('owned_teams', lazy=True))
-    # public = db.relationship('User', foreign_keys=[public_id], backref=db.backref('created_teams', lazy=True))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    destination = db.Column(db.String(150), nullable=False, comment='目的地')
+    departure_location = db.Column(
+        db.String(150), nullable=False, comment='出发地点')
+    travel_mode = db.Column(db.String(150), nullable=False, comment='出行方式')
+    team_type = db.Column(db.String(150), nullable=False, comment='队伍类型')
+    travel_time = db.Column(db.String(150), nullable=False, comment='游玩时间')
+    travel_budget = db.Column(db.String(150), nullable=False, comment='旅游预算')
+    max_members = db.Column(db.Integer, nullable=True,
+                            default=0, comment='组队人数')
+    current_members = db.Column(
+        db.Integer, nullable=False, default=0, comment='当前组队人数')
+    public_id = db.Column(db.Integer, nullable=False,
+                          comment='发起人id（关联user表的id）')
+    admin_id = db.Column(db.Integer, nullable=True,
+                         default=1, comment='管理员id（关联user表的id）')
 
 
 # class UserTeam(db.Model):

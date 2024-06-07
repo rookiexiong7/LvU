@@ -19,7 +19,7 @@ CREATE TABLE `team`  (
 ) ENGINE = InnoDB;
 
 -- 插入 team 表的示例数据
-INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000元', 5, 1, 1, 1);
+INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000元', 5, 2, 1, 1);
 INSERT INTO `team` VALUES (2, '南京', '广州', '火车', '自驾游', '2024-06-15', '3000元', 4, 1, 1, 2);
 INSERT INTO `team` VALUES (3, '重庆', '深圳', '巴士', '跟团游', '2024-06-20', '2000元', 7, 1, 1, 3);
 
@@ -39,9 +39,9 @@ CREATE TABLE `user`  (
 ) ENGINE = InnoDB;
 
 -- 插入 user 表的示例数据
-INSERT INTO `user` VALUES (1, 'user1', '123456', '111111111111111111', '17612341234', '外向', '登山', '北京', '男');
-INSERT INTO `user` VALUES (2, 'user2', '123456', '111111111111111112', '17612341235', '内向', '阅读', '上海', '女');
-INSERT INTO `user` VALUES (3, 'user3', '123456', '111111111111111113', '17612341236', '活泼', '摄影', '广州', '男');
+INSERT INTO `user` VALUES (1, 'zwxx', '123456', '111111111111111111', '17612341234', '外向', '登山', '北京', '男');
+INSERT INTO `user` VALUES (2, 'hcyy', '123456', '111111111111111112', '17612341235', '内向', '阅读', '上海', '女');
+INSERT INTO `user` VALUES (3, 'zzxx', '123456', '111111111111111113', '17612341236', '活泼', '摄影', '广州', '男');
 INSERT INTO `user` VALUES (4, 'user4', '123456', '111111111111111114', '17612341237', '安静', '美食', '深圳', '女');
 INSERT INTO `user` VALUES (5, 'user5', '123456', '111111111111111115', '17612341238', '冒险', '旅行', '重庆', '男');
 
@@ -55,8 +55,10 @@ CREATE TABLE `user_team`  (
 ) ENGINE = InnoDB;
 
 -- 插入 user_team 表的示例数据
-INSERT INTO `user_team` VALUES (1, 1, 2, 0);
-INSERT INTO `user_team` VALUES (2, 1, 3, 1);
-INSERT INTO `user_team` VALUES (3, 1, 4, 2);
-INSERT INTO `user_team` VALUES (4, 2, 2, 1);
-INSERT INTO `user_team` VALUES (5, 2, 3, 2);
+INSERT INTO `user_team` VALUES (1, 1, 1, 1);
+INSERT INTO `user_team` VALUES (2, 1, 2, 0);
+INSERT INTO `user_team` VALUES (3, 1, 3, 1);
+INSERT INTO `user_team` VALUES (4, 1, 4, 2);
+INSERT INTO `user_team` VALUES (5, 2, 2, 1);
+INSERT INTO `user_team` VALUES (6, 2, 3, 2);
+INSERT INTO `user_team` VALUES (7, 3, 3, 1);
