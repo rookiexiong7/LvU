@@ -82,14 +82,14 @@
         {% for team in approved_teams %}
         <li>
             <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
-            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍成员信息</a> <!-- 新添加的查看队伍信息按钮 -->
+            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
         </li>
         {% endfor %}
     </ul>
 
     <!-- 引入 Bootstrap JS 和 jQuery -->
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/popper.min.js') }}""></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
     <script>
         $(document).ready(function () {

@@ -4,16 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>队伍成员 - {{ team.destination }}</title>
+    <title>队伍信息：目的地 - {{ team.destination }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f4f4f9;
         }
 
         h2 {
             margin-bottom: 20px;
+            color: #333;
+        }
+
+        .team-info, .members-info {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .team-info p, .members-info p {
+            margin: 5px 0;
+            color: #555;
         }
 
         ul {
@@ -24,40 +39,83 @@
         li {
             margin-bottom: 10px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .member-info {
-            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .member-info span {
+            flex: 1;
+            text-align: center;
         }
 
         .admin-label {
             font-weight: bold;
             color: red;
         }
+
+        a, button {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 15px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        a:hover, button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
 <body>
-    <h2>队伍成员 - {{ team.destination }}</h2>
-    <p><strong>目的地:</strong> {{ team.destination }}</p>
-    <p><strong>最大人数:</strong> {{ team.max_members }}</p>
-    <p><strong>当前人数:</strong> {{ team.current_members }}</p>
+    <div class="team-info">
+        <h2>队伍信息</h2>
+        <p><strong>目的地:</strong> {{ team.destination }}</p>
+        <p><strong>出发地点:</strong> {{ team.departure_location }}</p>
+        <p><strong>出行方式:</strong> {{ team.travel_mode }}</p>
+        <p><strong>队伍类型:</strong> {{ team.team_type }}</p>
+        <p><strong>出行时间:</strong> {{ team.travel_time }}</p>
+        <p><strong>旅游预算:</strong> {{ team.travel_budget }}</p>
+        <p><strong>最大人数:</strong> {{ team.max_members }}</p>
+        <p><strong>当前人数:</strong> {{ team.current_members }}</p>
+    </div>
 
-    <h2>成员</h2>
-    <ul>
-        {% for member in approved_members %}
-        <li>
-            <span class="member-info">
-                {% if member.id == team.admin_id %}
-                <span class="admin-label">(管理员)</span>
-                {% endif %}
-                用户名: {{ member.username }} | 手机号: {{ member.phone }}
-            </span>
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="members-info">
+        <h2>成员</h2>
+        <ul>
+            {% for member in approved_members %}
+            <li>
+                <span class="member-info">
+                    {% if member.id == team.admin_id %}
+                    <span class="admin-label">(管理员)</span>
+                    {% else %}
+                    <span>&nbsp;</span>
+                    {% endif %}
+                    <span>用户名: {{ member.username }}</span>
+                    <span>手机号: {{ member.phone }}</span>
+                    <span>性格: {{ member.character }}</span>
+                    <span>爱好: {{ member.travel_hobby }}</span>
+                    <span>居住地: {{ member.residence }}</span>
+                    <span>性别: {{ member.gender }}</span>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
     <a href="{{ url_for('home') }}">退出</a>
 </body>
 

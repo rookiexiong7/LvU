@@ -16,28 +16,27 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    phone = db.Column(db.String(20))
+    id_code = db.Column(db.String(100))
+    phone = db.Column(db.String(100))
+    character = db.Column(db.String(100))
+    travel_hobby = db.Column(db.String(150))
+    residence = db.Column(db.String(150))   # 居住地
+    gender = db.Column(db.String(10))
     teams = db.relationship('Team', secondary=team_membership, backref=db.backref('members', lazy='dynamic'))
 
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     destination = db.Column(db.String(150), nullable=False)
+    departure_location = db.Column(db.String(150), nullable=False)
+    travel_mode = db.Column(db.String(100))                    # 出行方式
+    team_type = db.Column(db.String(100))                      # 队伍类型
+    travel_time = db.Column(db.String(100), nullable=False)    # 出行时间
+    travel_budget = db.Column(db.String(100), nullable=False)  # 预算
     max_members = db.Column(db.Integer, nullable=False)
-    current_members = db.Column(db.Integer, default=0, nullable=False)
+    current_members = db.Column(db.Integer, nullable=False)
     public_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     # # 定义了两个关系属性 admin 和 public, 其分别表示了队伍的管理员和创建者。
-    # # 这样当设置 public_id 和 admin_id 为用户对象时，SQLAlchemy 会自动处理关系的关联, 防止报错
     # admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('owned_teams', lazy=True))
     # public = db.relationship('User', foreign_keys=[public_id], backref=db.backref('created_teams', lazy=True))
-
-
-# class UserTeam(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
-#     join_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     audit_status = db.Column(db.Integer, default=0, nullable=False)
-#
-#     user = db.relationship('User', backref='user_teams')
-#     team = db.relationship('Team', backref='user_teams')

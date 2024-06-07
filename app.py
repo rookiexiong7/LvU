@@ -12,7 +12,7 @@ from models import db, User, Team, team_membership
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/lvu'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/lvu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -248,16 +248,19 @@ def logout():
     return redirect(url_for('login'))
 
 
+# 用户个人信息设置
 @app.route('/user_setting', methods=['GET', 'POST'])
 def user_setting():
     return render_template('page/user_setting.html')
 
 
+# 用户修改密码
 @app.route('/user_password', methods=['GET', 'POST'])
 def user_password():
     return render_template('page/user_password.html')
 
 
+# 主界面
 @app.route('/home')
 def home():
     teams = Team.query.all()
