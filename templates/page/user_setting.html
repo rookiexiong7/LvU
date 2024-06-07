@@ -15,30 +15,47 @@
 
         <div class="layui-form layuimini-form">
             <div class="layui-form-item">
-                <label class="layui-form-label required">管理账号</label>
+                <label class="layui-form-label required">用户名</label>
                 <div class="layui-input-block">
-                    <input type="text" name="username" lay-verify="required" lay-reqtext="管理账号不能为空"
-                        placeholder="请输入管理账号" value="admin" class="layui-input">
-                    <tip>填写自己管理账号的名称。</tip>
+                    <input type="text" name="username" lay-verify="required" lay-reqtext="管理账号不能为空" placeholder="请输入用户名"
+                        value="admin" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item">
-                <label class="layui-form-label required">手机</label>
+                <label class="layui-form-label required">手机号</label>
                 <div class="layui-input-block">
                     <input type="number" name="phone" lay-verify="required" lay-reqtext="手机不能为空" placeholder="请输入手机"
                         value="" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item">
-                <label class="layui-form-label">邮箱</label>
+                <label class="layui-form-label">身份证号</label>
                 <div class="layui-input-block">
-                    <input type="email" name="email" placeholder="请输入邮箱" value="" class="layui-input">
+                    <input type="id_code" name="id_code" placeholder="请输入身份证号" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">性别</label>
+                <div class="layui-input-block">
+                    <input type="gender" name="gender" placeholder="请输入性别" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">性格</label>
+                <div class="layui-input-block">
+                    <input type="character" name="character" placeholder="请输入性格" value="" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">居住地</label>
+                <div class="layui-input-block">
+                    <input type="residence" name="residence" placeholder="请输入居住地" value="" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item layui-form-text">
-                <label class="layui-form-label">备注信息</label>
+                <label class="layui-form-label">旅游爱好</label>
                 <div class="layui-input-block">
-                    <textarea name="remark" class="layui-textarea" placeholder="请输入备注信息"></textarea>
+                    <textarea name="remark" class="layui-textarea" placeholder="旅游爱好"></textarea>
                 </div>
             </div>
 

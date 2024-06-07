@@ -376,7 +376,7 @@ def manage_team(team_id):
         team_membership.c.audit_status == 1
     ).all()
 
-    return render_template('manage_team.html', team=team, form=form, members=members)
+    return render_template('page/manage_team.html', team=team, form=form, members=members)
 
 
 # 管理员移除队员
