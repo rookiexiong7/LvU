@@ -86,18 +86,33 @@
 </head>
 
 <body>
-    <h2>管理队伍 - {{ team.destination }}</h2>
+    <h2>管理队伍信息 - {{ team.destination }}</h2>
     <form id="updateTeamForm" method="POST" action="{{ url_for('manage_team', team_id=team.id) }}">
         {{ form.hidden_tag() }}
         <div>
-            {{ form.destination.label }} {{ form.destination(size=20) }}
-        </div>
-        <div>
-            {{ form.max_members.label }} {{ form.max_members(size=5) }}
-        </div>
+        {{ form.destination.label }} {{ form.destination(size=20) }}
+    </div>
+    <div>
+        {{ form.departure_location.label }} {{ form.departure_location(size=20) }}
+    </div>
+    <div>
+        {{ form.travel_mode.label }} {{ form.travel_mode(size=20) }}
+    </div>
+    <div>
+        {{ form.team_type.label }} {{ form.team_type(size=20) }}
+    </div>
+    <div>
+        {{ form.travel_time.label }} {{ form.travel_time(size=20) }}
+    </div>
+    <div>
+        {{ form.travel_budget.label }} {{ form.travel_budget(size=20) }}
+    </div>
+    <div>
+        {{ form.max_members.label }} {{ form.max_members(size=5) }}
+    </div>
         <button id="updateTeamButton" type="submit">Update Team</button>
     </form>
-    <h2>队伍成员</h2>
+    <h2>管理队伍成员</h2>
     <ul>
         {% for member in members %}
         <li>

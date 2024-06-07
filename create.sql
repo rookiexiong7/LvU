@@ -10,7 +10,7 @@ CREATE TABLE `team`  (
   `travel_mode` varchar(100) COMMENT '出行方式',
   `team_type` varchar(100) COMMENT '队伍类型',
   `travel_time` varchar(100) NOT NULL COMMENT '游玩时间',
-  `travel_budget` varchar(100) NOT NULL COMMENT '旅游预算',
+  `travel_budget` int UNSIGNED NOT NULL COMMENT '旅游预算',  -- 将字段类型改为非负整数
   `max_members` int NULL DEFAULT 0 COMMENT '组队人数',
   `current_members` int NOT NULL DEFAULT 0 COMMENT '当前组队人数',
   `public_id` int NOT NULL COMMENT '发起人id（关联user表的id）',
@@ -19,9 +19,9 @@ CREATE TABLE `team`  (
 ) ENGINE = InnoDB;
 
 -- 插入 team 表的示例数据
-INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000元', 5, 2, 1, 1);
-INSERT INTO `team` VALUES (2, '南京', '广州', '火车', '自驾游', '2024-06-15', '3000元', 4, 1, 1, 2);
-INSERT INTO `team` VALUES (3, '重庆', '深圳', '巴士', '跟团游', '2024-06-20', '2000元', 7, 1, 1, 3);
+INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1);
+INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 1, 1, 2);
+INSERT INTO `team` VALUES (3, '重庆', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 1, 1, 3);
 
 -- 创建 user 表
 CREATE TABLE `user`  (

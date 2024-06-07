@@ -4,9 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>搜索结果</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- 引入 Bootstrap CSS 实现弹窗 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
     <style>
         body {
@@ -58,8 +57,8 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="关闭">
+                        <span aria-hidden="true">&times</span>
                     </button>
                 </div>
                 <div class="modal-body">
@@ -77,18 +76,25 @@
         </div>
     </div>
 
-    <h2>我加入的队伍</h2>
+    <!-- 显示搜索结果 -->
+    <h2>筛选结果</h2>
     <ul>
-        {% for team in approved_teams %}
+        {% for team in teams %}
         <li>
+            <!-- 队伍信息列表内容 -->
             <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
-            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
-            <form method="POST" action="{{ url_for('leave_team', team_id=team.id) }}" style="display: inline;">
-                <button type="submit">退出队伍</button>
+            <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
+                {% if team.current_members >= team.max_members %}
+                <button type="submit" disabled>加入</button>
+                {% else %}
+                <button type="submit">加入</button>
+                {% endif %}
             </form>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a>
         </li>
         {% endfor %}
     </ul>
+    <a href="{{ url_for('joinable_teams') }}" class="btn btn-primary">返回</a>
 
     <!-- 引入 Bootstrap JS 和 jQuery -->
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
@@ -104,3 +110,5 @@
 </body>
 
 </html>
+
+

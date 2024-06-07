@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
-from sqlalchemy import text
+from sqlalchemy import text, and_
 
 from forms import RegistrationForm, LoginForm, TeamForm
 from forms import ManageTeamForm  # 新增管理队伍的表单
@@ -136,9 +136,43 @@ def sending_requests():
 
     return render_template('page/sending_requests.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
 
+
+# 根据条件筛选队伍
+@app.route('/search_teams', methods=['POST'])
+@login_required
+def search_teams():
+    destination = request.form.get('destination', None)
+    departure_location = request.form.get('departure_location', None)
+    travel_mode = request.form.get('travel_mode', None)
+    team_type = request.form.get('team_type', None)
+    max_travel_budget = request.form.get('max_travel_budget', None)
+
+    # 根据搜索条件查询队伍
+    teams = Team.query.filter(Team.admin_id != current_user.id, Team not in current_user.teams)
+
+    filters = []
+
+    if destination:
+        filters.append(Team.destination.ilike(f'%{destination}%'))
+
+    if departure_location:
+        filters.append(Team.departure_location.ilike(f'%{departure_location}%'))
+
+    if travel_mode and travel_mode != '无要求':
+        filters.append(Team.travel_mode == travel_mode)
+
+    if team_type and team_type != '无要求':
+        filters.append(Team.team_type == team_type)
+
+    if max_travel_budget:
+        filters.append(Team.travel_budget <= max_travel_budget)
+
+    teams = teams.filter(and_(*filters)).all()
+
+    return render_template('page/search_results.html', teams=teams)
+
+
 # 加入队伍
-
-
 @app.route('/join_team/<int:team_id>', methods=['POST'])
 @login_required
 def join_team(team_id):
@@ -297,6 +331,30 @@ def view_team(team_id):
     return render_template('page/view_team.html', team=team, approved_members=approved_members)
 
 
+# 退出队伍
+@app.route('/leave_team/<int:team_id>', methods=['POST'])
+@login_required
+def leave_team(team_id):
+    # 获取当前用户和队伍
+    user = current_user
+    team = Team.query.get_or_404(team_id)
+    # 从数据库中查找用户与队伍的关联记录并删除
+    user_team_record = team_membership.delete().where(
+        (team_membership.c.join_user_id == user.id) &
+        (team_membership.c.team_id == team_id) &
+        (team_membership.c.audit_status == 1)
+    )
+    db.session.execute(user_team_record)
+    db.session.commit()
+    # 更新队伍中的成员数量
+    team.current_members -= 1
+    db.session.commit()
+    flash('成功退出队伍', 'success')
+
+    # 重定向回到我的队伍页面或者其他适当的页面
+    return redirect(url_for('my_join_team'))
+
+
 @app.route('/my_manage_team', methods=['GET'])
 @login_required
 def my_manage_team():
@@ -371,8 +429,7 @@ def manage_team(team_id):
                 f'无法将队伍的最大人数设置为{form.max_members.data}，因为它小于当前的队伍人数 {team.current_members}.',
                 'danger')
         else:
-            team.destination = form.destination.data
-            team.max_members = form.max_members.data
+            form.populate_obj(team)  # 使用表单数据更新队伍对象
             db.session.commit()
             flash('成功更新队伍信息！', 'success')
 

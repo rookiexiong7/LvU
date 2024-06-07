@@ -36,7 +36,7 @@ class Team(db.Model):
     travel_mode = db.Column(db.String(100))                    # 出行方式
     team_type = db.Column(db.String(100))                      # 队伍类型
     travel_time = db.Column(db.String(100), nullable=False)    # 出行时间
-    travel_budget = db.Column(db.String(100), nullable=False)  # 预算
+    travel_budget = db.Column(db.Integer, nullable=False)      # 预算，改为整数类型
     max_members = db.Column(db.Integer, nullable=False)
     current_members = db.Column(db.Integer, nullable=False)
     public_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -44,5 +44,3 @@ class Team(db.Model):
     # # 定义了两个关系属性 admin 和 public, 其分别表示了队伍的管理员和创建者。
     # admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('owned_teams', lazy=True))
     # public = db.relationship('User', foreign_keys=[public_id], backref=db.backref('created_teams', lazy=True))
-
-

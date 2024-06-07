@@ -25,13 +25,18 @@ class TeamForm(FlaskForm):
     travel_mode = StringField('出行方式', validators=[DataRequired()])
     team_type = StringField('队伍类型', validators=[DataRequired()])
     travel_time = StringField('游玩时间', validators=[DataRequired()])
-    travel_budget = StringField('旅游预算', validators=[DataRequired()])
-    max_members = IntegerField('最大人数', validators=[DataRequired()])
+    travel_budget = IntegerField('旅游预算', validators=[DataRequired(), NumberRange(min=0)])
+    max_members = IntegerField('最大人数', validators=[DataRequired(), NumberRange(min=1, message="至少为1人")])
     submit = SubmitField('创建队伍')
 
 
 class ManageTeamForm(FlaskForm):
     destination = StringField('Destination', validators=[DataRequired()])
+    departure_location = StringField('Departure Location', validators=[DataRequired()])
+    travel_mode = StringField('Travel Mode')
+    team_type = StringField('Team Type')
+    travel_time = StringField('Travel Time', validators=[DataRequired()])
+    travel_budget = IntegerField('Travel Budget', validators=[DataRequired(), NumberRange(min=0)])
     max_members = IntegerField('Max Members',
-                               validators=[DataRequired(), NumberRange(min=1, message="Must be at least 1")])
+                               validators=[DataRequired(), NumberRange(min=1, message="人数至少为1")])
     submit = SubmitField('Update Team')

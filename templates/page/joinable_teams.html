@@ -18,35 +18,76 @@
             margin-bottom: 20px;
         }
 
-        ul {
+        .form-container {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+            margin: 10px 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* 增加出行方式和队伍类型的高度 */
+        #travel_mode.form-control,
+        #team_type.form-control {
+            height: auto;
+            padding: 12px;
+        }
+
+        .team-list {
             list-style-type: none;
             padding: 0;
         }
 
-        li {
+        .team-card {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .team-info {
+        .team-card .team-info {
+            margin-right: 20px;
             flex-grow: 1;
         }
 
-        form {
+        .team-card form,
+        .team-card a {
             margin-left: 10px;
         }
 
-        a,
-        button {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        button:disabled {
-            background-color: grey;
-            cursor: not-allowed;
+        .btn-primary,
+        .btn-success,
+        .btn-info,
+        .btn-secondary {
+            padding: 10px 20px;
         }
     </style>
 </head>
@@ -77,22 +118,64 @@
         </div>
     </div>
 
-    <h2>可加入的队伍</h2>
-    <ul>
-        {% for team in teams if team.admin_id != current_user.id and team not in current_user.teams %}
-        <li>
-            <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
-            <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
-                {% if team.current_members >= team.max_members %}
-                <button type="submit" disabled>加入</button>
-                {% else %}
-                <button type="submit">加入</button>
-                {% endif %}
-            </form>
-            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h2>筛选可加入队伍</h2>
+        <!-- 搜索表单 -->
+        <form method="GET" action="{{ url_for('search_teams') }}" class="form-container">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="destination">目的地：</label>
+                    <input type="text" class="form-control" name="destination" id="destination">
+                </div>
+                <div class="form-group">
+                    <label for="departure_location">出发地点：</label>
+                    <input type="text" class="form-control" name="departure_location" id="departure_location">
+                </div>
+                <div class="form-group">
+                    <label for="travel_mode">出行方式：</label>
+                    <select class="form-control" name="travel_mode" id="travel_mode">
+                        <option value="">无要求</option>
+                        <option value="飞机">飞机</option>
+                        <option value="火车">火车</option>
+                        <option value="大巴">大巴</option>
+                        <option value="私家车">私家车</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="team_type">队伍类型：</label>
+                    <select class="form-control" name="team_type" id="team_type">
+                        <option value="">无要求</option>
+                        <option value="家庭游">家庭游</option>
+                        <option value="自驾游">自驾游</option>
+                        <option value="跟团游">跟团游</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="max_travel_budget">最高旅游预算：</label>
+                    <input type="number" class="form-control" name="max_travel_budget" id="max_travel_budget" min="0"
+                        placeholder="最高旅游预算">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">搜索</button>
+        </form>
+
+        <h2>所有可加入队伍</h2>
+        <ul class="team-list">
+            {% for team in teams if team.admin_id != current_user.id and team not in current_user.teams %}
+            <li class="team-card">
+                <div class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</div>
+                <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
+                    {% if team.current_members >= team.max_members %}
+                    <button type="submit" class="btn btn-secondary" disabled>加入</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-success">加入</button>
+                    {% endif %}
+                </form>
+                <a href="{{ url_for('view_team', team_id=team.id) }}" class="btn btn-info">查看队伍信息</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 
     <!-- 引入 Bootstrap JS 和 jQuery -->
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
