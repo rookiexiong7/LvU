@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, IntegerField, SubmitField
+from wtforms import StringField, PasswordField, IntegerField, SubmitField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, EqualTo, Length, NumberRange
 
 
@@ -40,3 +40,14 @@ class ManageTeamForm(FlaskForm):
     max_members = IntegerField('Max Members',
                                validators=[DataRequired(), NumberRange(min=1, message="人数至少为1")])
     submit = SubmitField('Update Team')
+
+
+class UserForm(FlaskForm):
+    username = StringField('用户名', validators=[DataRequired()])
+    phone = StringField('手机号', validators=[DataRequired()])
+    id_code = StringField('身份证号')
+    gender = SelectField('性别', choices=[('', '请选择性别'), ('male', '男'), ('female', '女'), ('other', '其他')])
+    character = StringField('性格')
+    residence = StringField('居住地')
+    travel_hobby = TextAreaField('旅游爱好')
+    submit = SubmitField('确认保存')

@@ -1,93 +1,116 @@
-<style>
-    .layui-form-item .layui-input-company {
-        width: auto;
-        padding-right: 10px;
-        line-height: 38px;
-    }
-</style>
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/layui-v2.6.3/css/layui.css') }}" media="all">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/layuimini.css') }}?v=2.0.4.2" media="all">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/themes/default.css') }}" media="all">
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/font-awesome-4.7.0/css/font-awesome.min.css') }}"
-    media="all">
-<div class="layuimini-container layuimini-page-anim">
-    <div class="layuimini-main">
+<!DOCTYPE html>
+<html lang="en">
 
-        <div class="layui-form layuimini-form">
-            <div class="layui-form-item">
-                <label class="layui-form-label required">用户名</label>
-                <div class="layui-input-block">
-                    <input type="text" name="username" lay-verify="required" lay-reqtext="管理账号不能为空" placeholder="请输入用户名"
-                        value="admin" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label required">手机号</label>
-                <div class="layui-input-block">
-                    <input type="number" name="phone" lay-verify="required" lay-reqtext="手机不能为空" placeholder="请输入手机"
-                        value="" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">身份证号</label>
-                <div class="layui-input-block">
-                    <input type="id_code" name="id_code" placeholder="请输入身份证号" value="" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">性别</label>
-                <div class="layui-input-block">
-                    <input type="gender" name="gender" placeholder="请输入性别" value="" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">性格</label>
-                <div class="layui-input-block">
-                    <input type="character" name="character" placeholder="请输入性格" value="" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item">
-                <label class="layui-form-label">居住地</label>
-                <div class="layui-input-block">
-                    <input type="residence" name="residence" placeholder="请输入居住地" value="" class="layui-input">
-                </div>
-            </div>
-            <div class="layui-form-item layui-form-text">
-                <label class="layui-form-label">旅游爱好</label>
-                <div class="layui-input-block">
-                    <textarea name="remark" class="layui-textarea" placeholder="旅游爱好"></textarea>
-                </div>
-            </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户设置</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/layui-v2.6.3/css/layui.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layuimini.css') }}?v=2.0.4.2" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/default.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/font-awesome-4.7.0/css/font-awesome.min.css') }}" media="all">
+    <style>
+        .layui-form-item .layui-input-company {
+            width: auto;
+            padding-right: 10px;
+            line-height: 38px;
+        }
+    </style>
+</head>
 
-            <div class="layui-form-item">
-                <div class="layui-input-block">
-                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
-                </div>
+<body>
+    <div class="layuimini-container layuimini-page-anim">
+        <div class="layuimini-main">
+            <div class="layui-form layuimini-form">
+                <form id="user-settings-form" method="POST" action="{{ url_for('user_setting') }}">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">用户名</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="username" lay-verify="required" lay-reqtext="用户名不能为空" placeholder="请输入用户名"
+                                value="{{ current_user.username }}" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">手机号</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="phone" lay-verify="required" lay-reqtext="手机号不能为空" placeholder="请输入手机号"
+                                value="{{ current_user.phone }}" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">身份证号</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="id_code" placeholder="请输入身份证号" value="{{ current_user.id_code }}" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">性别</label>
+                        <div class="layui-input-block">
+                            <select name="gender" class="layui-input">
+                                <option value="">请选择性别</option>
+                                <option value="男" {% if current_user.gender=='男' %}selected{% endif %}>男</option>
+                                <option value="女" {% if current_user.gender=='女' %}selected{% endif %}>女</option>
+                                <option value="其他" {% if current_user.gender=='其他' %}selected{% endif %}>其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">性格</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="character" placeholder="请输入性格" value="{{ current_user.character }}" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">居住地</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="residence" placeholder="请输入居住地" value="{{ current_user.residence }}" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">旅游爱好</label>
+                        <div class="layui-input-block">
+                            <textarea name="travel_hobby" class="layui-textarea" placeholder="请输入旅游爱好">{{ current_user.travel_hobby }}</textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="saveBtn">确认保存</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</div>
-<script>
-    layui.use(['form', 'miniPage'], function () {
-        var form = layui.form,
-            layer = layui.layer,
-            miniPage = layui.miniPage;
+    <script src="{{ url_for('static', filename='lib/layui-v2.6.3/layui.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script>
+        layui.use(['form'], function () {
+            var form = layui.form,
+                layer = layui.layer;
 
-        /**
-         * 初始化表单，要加上，不然刷新部分组件可能会不加载
-         */
-        form.render();
+            form.render();
 
-        //监听提交
-        form.on('submit(saveBtn)', function (data) {
-            var index = layer.alert(JSON.stringify(data.field), {
-                title: '最终的提交信息'
-            }, function () {
-                layer.close(index);
-                miniPage.hashHome();
+            form.on('submit(saveBtn)', function (data) {
+                $.ajax({
+                    url: "{{ url_for('user_setting') }}",
+                    type: "POST",
+                    data: $('#user-settings-form').serialize(),
+                    success: function (response) {
+                        layer.alert(response.message, {
+                            title: '提交结果'
+                        });
+                    },
+                    error: function (xhr) {
+                        var response = JSON.parse(xhr.responseText);
+                        layer.alert(response.message, {
+                            title: '错误'
+                        });
+                    }
+                });
+                return false;
             });
-            return false;
         });
+    </script>
+</body>
 
-    });
-</script>
+</html>

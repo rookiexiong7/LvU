@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
 from sqlalchemy import text, and_
 
-from forms import RegistrationForm, LoginForm, TeamForm
+from forms import RegistrationForm, LoginForm, TeamForm, UserForm
 from forms import ManageTeamForm  # 新增管理队伍的表单
 from models import db, User, Team, team_membership
 
@@ -79,6 +79,49 @@ def login():
         else:
             flash('登录失败，请检查账号密码是否正确！', 'danger')
     return render_template('page/login.html', form=form)
+
+
+# 更改用户信息
+@app.route('/user_setting', methods=['GET', 'POST'])
+@login_required
+def user_setting():
+    if request.method == 'POST':
+        current_user.username = request.form['username']
+        current_user.phone = request.form['phone']
+        current_user.id_code = request.form.get('id_code', '')
+        current_user.gender = request.form.get('gender', '')
+        current_user.character = request.form.get('character', '')
+        current_user.residence = request.form.get('residence', '')
+        current_user.travel_hobby = request.form.get('travel_hobby', '')
+        db.session.commit()
+        return jsonify({'message': '用户信息已更新'}), 200
+
+    return render_template('page/user_setting.html')
+
+
+# 修改用户密码
+@app.route('/user_password', methods=['GET', 'POST'])
+@login_required
+def user_password():
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        again_password = request.form['again_password']
+
+        # Check if old password is correct
+        if current_user.password != old_password:
+            return jsonify({'message': '旧的密码不正确'}), 400
+
+        # Check if new passwords match
+        if new_password != again_password:
+            return jsonify({'message': '两次输入的新密码不一致'}), 400
+
+        # Update password in the database
+        current_user.password = new_password
+        db.session.commit()
+        return jsonify({'message': '密码已更新'}), 200
+
+    return render_template('page/user_password.html')
 
 
 # 创建队伍
@@ -285,18 +328,6 @@ def team_requests():
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-
-# 用户个人信息设置
-@app.route('/user_setting', methods=['GET', 'POST'])
-def user_setting():
-    return render_template('page/user_setting.html')
-
-
-# 用户修改密码
-@app.route('/user_password', methods=['GET', 'POST'])
-def user_password():
-    return render_template('page/user_password.html')
 
 
 # 主界面
