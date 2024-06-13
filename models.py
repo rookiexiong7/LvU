@@ -41,6 +41,36 @@ class Team(db.Model):
     current_members = db.Column(db.Integer, nullable=False)
     public_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    travel_plan = db.Column(db.Text)  # 新增旅游计划景点字段
+    team_admin = db.relationship('User', foreign_keys=[admin_id])
+
     # # 定义了两个关系属性 admin 和 public, 其分别表示了队伍的管理员和创建者。
     # admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('owned_teams', lazy=True))
     # public = db.relationship('User', foreign_keys=[public_id], backref=db.backref('created_teams', lazy=True))
+
+
+# 存储邀请信息
+class Invitation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=False)
+    inviter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    invitee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), default='pending')  # 状态：pending, accepted, declined
+
+    team = db.relationship('Team', backref=db.backref('invitations', lazy='dynamic'))
+    inviter = db.relationship('User', foreign_keys=[inviter_id])
+    invitee = db.relationship('User', foreign_keys=[invitee_id])
+
+
+# 存储景点信息
+class Attractions(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    城市 = db.Column(db.String(50))
+    景点名称 = db.Column(db.String(100))
+    攻略数量 = db.Column(db.String(50))
+    评论数量 = db.Column(db.String(50))
+    星级 = db.Column(db.Float)
+    排名 = db.Column(db.String(50))
+    简介 = db.Column(db.Text)
+    链接 = db.Column(db.String(255))
+    图片 = db.Column(db.String(255))

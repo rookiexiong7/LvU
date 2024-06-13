@@ -15,13 +15,14 @@ CREATE TABLE `team`  (
   `current_members` int NOT NULL DEFAULT 0 COMMENT '当前组队人数',
   `public_id` int NOT NULL COMMENT '发起人id（关联user表的id）',
   `admin_id` int NULL DEFAULT 1 COMMENT '管理员id（关联user表的id）',
+  `travel_plan` text COMMENT '旅游计划',  -- 新增旅游计划景点字段
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
 -- 插入 team 表的示例数据
-INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1);
-INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 1, 1, 2);
-INSERT INTO `team` VALUES (3, '重庆', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 1, 1, 3);
+INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1, '');
+INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 1, 1, 2, '');
+INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 1, 1, 3, '');
 
 -- 创建 user 表
 CREATE TABLE `user`  (
@@ -62,7 +63,10 @@ INSERT INTO `user_team` VALUES (4, 1, 4, 2);
 INSERT INTO `user_team` VALUES (5, 2, 2, 1);
 INSERT INTO `user_team` VALUES (6, 2, 3, 2);
 INSERT INTO `user_team` VALUES (7, 3, 3, 1);
+INSERT INTO `user_team` VALUES (8, 2, 1, 1);
+INSERT INTO `user_team` VALUES (9, 3, 1, 1);
 
+-- 创建 attractions 表
 CREATE TABLE attractions (
     `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
     `城市` VARCHAR(50),
@@ -76,3 +80,13 @@ CREATE TABLE attractions (
     `图片` VARCHAR(255),
      PRIMARY KEY (`id`) USING BTREE
 );
+
+-- 创建 Invitations 表
+CREATE TABLE `invitation` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `team_id` int NOT NULL COMMENT '队伍id（关联team表的id）',
+  `inviter_id` int NOT NULL COMMENT '邀请人id（关联user表的id）',
+  `invitee_id` int NOT NULL COMMENT '被邀请人id（关联user表的id）',
+  `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT '邀请状态：pending, accepted, declined',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;

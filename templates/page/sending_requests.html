@@ -79,9 +79,33 @@
 
     <h2>已发送申请</h2>
     <ul>
+        {% for team in approved_teams %}
+        <li>
+            <span class="team-info">
+                <span>队伍目的地: {{ team.destination }}</span>
+                <span>队伍管理员: {{ team.team_admin.username }}</span>
+                <span class="status-label">状态：申请已被接受</span>
+            </span>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍成员</a> <!-- 新添加的查看队伍信息按钮 -->
+        </li>
+        {% endfor %}
         {% for team in pending_teams %}
         <li>
-            <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+            <span class="team-info">
+                <span>队伍目的地: {{ team.destination }}</span>
+                <span>队伍管理员: {{ team.team_admin.username }}</span>
+                <span class="status-label">状态：申请未被处理</span>
+            </span>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍成员</a> <!-- 新添加的查看队伍信息按钮 -->
+        </li>
+        {% endfor %}
+        {% for team in deny_teams %}
+        <li>
+            <span class="team-info">
+                <span>队伍目的地: {{ team.destination }}</span>
+                <span>队伍管理员: {{ team.team_admin.username }}</span>
+                <span class="status-label">状态：申请已被拒绝</span>
+            </span>
             <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍成员</a> <!-- 新添加的查看队伍信息按钮 -->
         </li>
         {% endfor %}
@@ -89,7 +113,7 @@
 
     <!-- 引入 Bootstrap JS 和 jQuery -->
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/popper.min.js') }}""></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
     <script>
         $(document).ready(function () {

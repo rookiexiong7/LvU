@@ -48,15 +48,35 @@
           "target": "_self",
           "child": [
             {
-              "title": "发送申请",
+              "title": "发送的申请",
               "icon": "fa fa-list-alt",
               "href": "sending_requests",
               "target": "_self"
             },
             {
-              "title": "收到申请",
+              "title": "收到的申请",
               "icon": "fa fa-navicon",
               "href": "team_requests",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "邀请管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "发送的邀请",
+              "icon": "fa fa-list-alt",
+              "href": "sent_invitations",
+              "target": "_self"
+            },
+            {
+              "title": "收到的邀请",
+              "icon": "fa fa-navicon",
+              "href": "received_invitations",
               "target": "_self"
             }
           ]

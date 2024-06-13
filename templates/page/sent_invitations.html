@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发送的邀请</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .invitations-info {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .invitations-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .invitation-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .invitation-info span {
+            flex: 1;
+            text-align: center;
+        }
+
+        .status-label {
+            font-weight: bold;
+        }
+
+        a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 15px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invitations-info">
+        <h2>发送的邀请</h2>
+        <ul>
+            {% for invitation in invitations %}
+            <li>
+                <span class="invitation-info">
+                    <span>队伍目的地: {{ invitation.team.destination }}</span>
+                    <span>被邀请用户: {{ invitation.invitee.username }}</span>
+                    <span class="status-label">
+                        {% if invitation.status == 'accepted' %}
+                        状态：邀请已被接受
+                        {% elif invitation.status == 'denied' %}
+                        状态：邀请已被拒绝
+                        {% else %}
+                        状态：邀请未被处理
+                        {% endif %}
+                    </span>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <a href="{{ url_for('home') }}">返回首页</a>
+</body>
+
+</html>

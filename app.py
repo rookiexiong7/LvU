@@ -3,16 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, current_user, logout_user, login_required
-from sqlalchemy import text, and_
+from sqlalchemy import text, and_, func, Integer, cast
 
 from forms import RegistrationForm, LoginForm, TeamForm, UserForm
 from forms import ManageTeamForm  # 新增管理队伍的表单
-from models import db, User, Team, team_membership
+from models import db, User, Team, team_membership, Invitation, Attractions
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/lvu'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/lvu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -38,6 +38,10 @@ def index():
     for team in current_user_teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
+
+        if membership is None:
+            continue  # 如果 membership 为空，跳过当前团队的处理
+
         if membership.audit_status == 1:
             approved_teams.append(team)
         elif membership.audit_status == 0:
@@ -161,23 +165,31 @@ def create_team():
     return render_template('page/create_team.html', form=form)
 
 
+# 发送的申请（发送申请界面）
 @app.route('/sending_requests', methods=['GET', 'POST'])
 def sending_requests():
     teams = Team.query.all()
     current_user_teams = current_user.teams
     approved_teams = []
     pending_teams = []
+    deny_teams = []
     username = current_user.username
 
-    for team in current_user_teams:
+    for team in teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
+
+        if membership is None:
+            continue  # 如果 membership 为空，跳过当前团队的处理
+
         if membership.audit_status == 1:
             approved_teams.append(team)
         elif membership.audit_status == 0:
             pending_teams.append(team)
+        else:
+            deny_teams.append(team)
 
-    return render_template('page/sending_requests.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
+    return render_template('page/sending_requests.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, deny_teams=deny_teams, username=username)
 
 
 # 根据条件筛选队伍
@@ -274,12 +286,19 @@ def deny_request(join_user_id, team_id):
         flash('您没有权限拒绝此请求。')
         return redirect(url_for('team_requests'))
 
-    # 更新申请状态为2（审核不通过）
-    stmt = team_membership.update().where(
+    # # 更新申请状态为2（审核不通过）
+    # stmt = team_membership.update().where(
+    #     team_membership.c.join_user_id == join_user_id,
+    #     team_membership.c.team_id == team_id
+    # ).values(audit_status=2)
+    # db.session.execute(stmt)
+    # db.session.commit()
+    # 直接将申请记录删除, 避免无法重复申请的情况
+    user_team_record = team_membership.delete().where(
         team_membership.c.join_user_id == join_user_id,
         team_membership.c.team_id == team_id
-    ).values(audit_status=2)
-    db.session.execute(stmt)
+    )
+    db.session.execute(user_team_record)
     db.session.commit()
 
     flash('请求已成功拒绝！', 'success')
@@ -344,6 +363,10 @@ def home():
     for team in current_user_teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
+
+        if membership is None:
+            continue  # 如果 membership 为空，跳过当前团队的处理
+
         if membership.audit_status == 1:
             approved_teams.append(team)
         elif membership.audit_status == 0:
@@ -361,7 +384,46 @@ def view_team(team_id):
         team_membership.c.team_id == team_id,
         team_membership.c.audit_status == 1
     ).all()
-    return render_template('page/view_team.html', team=team, approved_members=approved_members)
+    # 查询队伍目的地的前五个景点推荐
+    city = team.destination
+    top_attractions = (Attractions.query.filter(
+        Attractions.城市 == city,
+        Attractions.排名 != '0'
+    ).order_by(
+        cast(func.substring_index(Attractions.排名, '第', -1), Integer)
+    ).limit(5).all())
+
+    return render_template('page/view_team.html', team=team, approved_members=approved_members, top_attractions=top_attractions)
+
+
+# 添加旅行计划
+@app.route('/add_to_travel_plan', methods=['POST'])
+def add_to_travel_plan():
+    data = request.get_json()
+    team_id = data.get('team_id')
+    attraction_name = data.get('attraction_name')
+
+    team = Team.query.get(team_id)
+    if not team:
+        return jsonify({'success': False, 'message': '队伍不存在'})
+
+    # 获取当前的旅行计划，如果为 None，设为一个空字符串
+    current_travel_plan = team.travel_plan or ''
+
+    # 检查旅行计划中是否已经包含该景点名称
+    if attraction_name in current_travel_plan:
+        return jsonify({'success': False, 'message': '旅行计划中已包含该景点'})
+
+    # 更新旅行计划
+    if current_travel_plan:
+        new_travel_plan = f"{current_travel_plan}，{attraction_name}"
+    else:
+        new_travel_plan = attraction_name
+
+    team.travel_plan = new_travel_plan
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 
 # 退出队伍
@@ -399,6 +461,10 @@ def my_manage_team():
     for team in current_user_teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
+
+        if membership is None:
+            continue  # 如果 membership 为空，跳过当前团队的处理
+
         if membership.audit_status == 1:
             approved_teams.append(team)
         elif membership.audit_status == 0:
@@ -417,6 +483,10 @@ def my_join_team():
     for team in current_user_teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
+
+        if membership is None:
+            continue  # 如果 membership 为空，跳过当前团队的处理
+
         if membership.audit_status == 1 and team.admin_id != current_user.id:
             approved_teams.append(team)
         elif membership.audit_status == 0:
@@ -436,6 +506,10 @@ def joinable_teams():
     for team in current_user_teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
+
+        if membership is None:
+            continue  # 如果 membership 为空，跳过当前团队的处理
+
         if membership.audit_status == 1:
             approved_teams.append(team)
         elif membership.audit_status == 0:
@@ -523,6 +597,112 @@ def transfer_admin(team_id, user_id):
 
     flash(f'管理员权限已转移给 {new_admin.username}.', 'success')
     return redirect(url_for('manage_team', team_id=team.id))
+
+
+# 邀请用户入队
+@app.route('/invite_user', methods=['POST'])
+@login_required
+def invite_user():
+    data = request.get_json()
+    username = data.get('username')
+    team_id = data.get('team_id')
+    team = Team.query.get_or_404(team_id)
+
+    if not username or not team_id:
+        return jsonify({'success': False, 'message': '缺少参数'}), 400
+
+    invitee = User.query.filter_by(username=username).first()
+
+    if not invitee:
+        return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+    # 检查是否邀请自己
+    if invitee.id == current_user.id:
+        return jsonify({'success': False, 'message': '不能邀请自己加入队伍'})
+
+    # 检查队伍是否已满
+    if team.current_members >= team.max_members:
+        return jsonify({'success': False, 'message': '队伍人数已满，无法邀请更多成员'})
+
+    # 创建邀请
+    invitation = Invitation(
+        team_id=team_id,
+        inviter_id=current_user.id,
+        invitee_id=invitee.id,
+        status='pending'
+    )
+    db.session.add(invitation)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': '邀请已发送'})
+
+
+# 收到的邀请界面
+@app.route('/received_invitations', methods=['GET'])
+@login_required
+def received_invitations():
+    user_id = current_user.id
+    invitations = Invitation.query.filter_by(invitee_id=user_id).all()
+
+    return render_template('page/received_invitations.html', invitations=invitations)
+
+
+# 发送的邀请界面
+@app.route('/sent_invitations')
+@login_required
+def sent_invitations():
+    invitations = Invitation.query.filter_by(inviter_id=current_user.id).all()
+    return render_template('page/sent_invitations.html', invitations=invitations)
+
+
+# 处理收到的入队邀请
+@app.route('/handle_invitation', methods=['POST'])
+@login_required
+def handle_invitation():
+    data = request.json
+    invitation_id = data.get('invitation_id')
+    action = data.get('action')
+
+    if not invitation_id or not action:
+        return jsonify({'success': False, 'message': '缺少参数'}), 400
+
+    invitation = Invitation.query.get(invitation_id)
+
+    if not invitation:
+        return jsonify({'success': False, 'message': '邀请不存在'}), 404
+
+    if action == 'accept':
+        team_id = invitation.team_id
+        invitee_id = invitation.invitee_id
+        inviter_id = invitation.inviter_id
+        team = Team.query.get(team_id)
+
+        if team.admin_id == inviter_id:
+            # 直接加入队伍
+            ins = team_membership.insert().values(
+                join_user_id=invitee_id, team_id=team_id, audit_status=1)
+            db.session.execute(ins)
+            team.current_members += 1
+
+            invitation.status = 'accepted'
+            db.session.commit()
+            return jsonify({'success': True, 'message': '邀请已接受'})
+        else:
+            # 向队伍管理员发送入队申请, 设置 audit_status 为 0
+            ins = team_membership.insert().values(
+                join_user_id=invitee_id, team_id=team_id, audit_status=0)
+            db.session.execute(ins)
+
+            invitation.status = 'accepted'
+            db.session.commit()
+            return jsonify({'success': True, 'message': '邀请已接受！\n已成功向队伍管理员发送入队申请'})
+
+    elif action == 'decline':
+        invitation.status = 'declined'
+        db.session.commit()
+        return jsonify({'success': True, 'message': '邀请已拒绝'})
+
+    return jsonify({'success': False, 'message': '无效的操作'}), 400
 
 
 if __name__ == '__main__':

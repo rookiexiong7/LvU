@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>队伍信息：目的地 - {{ team.destination }}</title>
+    <title>查看队伍信息</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
@@ -18,7 +18,7 @@
             color: #333;
         }
 
-        .team-info, .members-info {
+        .team-info, .members-info, .attractions-info {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -26,7 +26,7 @@
             margin-bottom: 20px;
         }
 
-        .team-info p, .members-info p {
+        .team-info p, .members-info p, .attractions-info p {
             margin: 5px 0;
             color: #555;
         }
@@ -63,6 +63,36 @@
             color: red;
         }
 
+        .attraction-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .attraction-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .attraction-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .attraction-info a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .attraction-info a:hover {
+            text-decoration: underline;
+        }
+
         a, button {
             display: inline-block;
             margin-right: 10px;
@@ -92,6 +122,30 @@
         <p><strong>旅游预算:</strong> {{ team.travel_budget }}元</p>
         <p><strong>最大人数:</strong> {{ team.max_members }}</p>
         <p><strong>当前人数:</strong> {{ team.current_members }}</p>
+        <p><strong>旅行计划:</strong> {{ team.travel_plan }}</p>
+    </div>
+
+    <!-- 景点推荐部分 -->
+    <div class="attractions-info">
+        <h2>推荐景点</h2>
+        <ul>
+            {% for attraction in top_attractions %}
+            <li class="attraction-item">
+                <div class="attraction-info">
+                    <div>
+                        <h3>{{ attraction.景点名称 }}</h3>
+                        <p>{{ attraction.排名 }}</p>
+                        <p>简介：{{ attraction.简介 }}</p>
+                        <p>详细信息：<a href="{{ attraction.链接 }}">{{ attraction.链接 }}</a></p>
+                        <p><button onclick="addToTravelPlan('{{ attraction.景点名称 }}')">加入计划</button></p>
+                    </div>
+                    <div>
+                        <img src="{{ attraction.图片 }}" alt="{{ attraction.景点名称 }}">
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
 
     <div class="members-info">
@@ -116,7 +170,72 @@
             {% endfor %}
         </ul>
     </div>
+
+    <!-- 新增邀请用户功能 -->
+    <div class="invite-section">
+        <h2>邀请用户</h2>
+        <form id="inviteForm">
+            <input type="text" id="inviteUsername" placeholder="输入用户名">
+            <button type="button" onclick="inviteUser()">邀请</button>
+        </form>
+    </div>
+
     <a href="{{ url_for('home') }}">退出</a>
+
+    <script>
+        function inviteUser() {
+            const username = document.getElementById('inviteUsername').value;
+            const teamId = {{ team.id }};
+            if (username) {
+                fetch('/invite_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username, team_id: teamId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('邀请已发送');
+                    } else {
+                        alert('邀请失败: ' + data.message);
+                    }
+                });
+            } else {
+                alert('请输入用户名');
+            }
+        }
+        function addToTravelPlan(attractionName) {
+            const teamId = {{ team.id }};
+            fetch('/add_to_travel_plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ team_id: teamId, attraction_name: attractionName })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('景点已成功添加到旅行计划！');
+                        // 更新界面上显示的旅行计划部分
+                        const travelPlanElement = document.getElementById('travelPlan');
+                        const currentPlan = travelPlanElement.innerText;
+                        if (currentPlan.trim() === '') {
+                            travelPlanElement.innerText = attractionName;
+                        } else {
+                            travelPlanElement.innerText = `${currentPlan}，${attractionName}`;
+                        }
+                    } else {
+                        alert('操作失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+    }
+    </script>
 </body>
 
 </html>
