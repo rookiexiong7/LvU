@@ -62,3 +62,17 @@ INSERT INTO `user_team` VALUES (4, 1, 4, 2);
 INSERT INTO `user_team` VALUES (5, 2, 2, 1);
 INSERT INTO `user_team` VALUES (6, 2, 3, 2);
 INSERT INTO `user_team` VALUES (7, 3, 3, 1);
+
+CREATE TABLE attractions (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `城市` VARCHAR(50),
+    `景点名称` VARCHAR(100),
+    `攻略数量` VARCHAR(50),
+    `评论数量` VARCHAR(50),
+    `星级` FLOAT,
+    `排名` VARCHAR(50),
+    `简介` TEXT,
+    `链接` VARCHAR(255),
+    `图片` VARCHAR(255),
+     PRIMARY KEY (`id`) USING BTREE
+);

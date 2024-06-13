@@ -12,7 +12,7 @@ from models import db, User, Team, team_membership
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/lvu'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/lvu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -191,7 +191,8 @@ def search_teams():
     max_travel_budget = request.form.get('max_travel_budget', None)
 
     # 根据搜索条件查询队伍
-    teams = Team.query.filter(Team.admin_id != current_user.id, Team not in current_user.teams)
+    teams = Team.query.filter(
+        Team.admin_id != current_user.id, Team not in current_user.teams)
 
     filters = []
 
@@ -199,7 +200,8 @@ def search_teams():
         filters.append(Team.destination.ilike(f'%{destination}%'))
 
     if departure_location:
-        filters.append(Team.departure_location.ilike(f'%{departure_location}%'))
+        filters.append(Team.departure_location.ilike(
+            f'%{departure_location}%'))
 
     if travel_mode and travel_mode != '无要求':
         filters.append(Team.travel_mode == travel_mode)
