@@ -1,10 +1,11 @@
+<!-- templates/notifications.html -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>收到的邀请</title>
+    <title>消息通知</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body {
@@ -18,7 +19,7 @@
             color: #333;
         }
 
-        .invitation-list {
+        .notification-list {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -41,14 +42,14 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
-        .invitation-info {
+        .notification-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
         }
 
-        .invitation-info span {
+        .notification-info span {
             flex: 1;
             text-align: center;
         }
@@ -77,20 +78,15 @@
 </head>
 
 <body>
-    <div class="invitation-list">
-        <h2>收到的邀请</h2>
+    <div class="notification-list">
+        <h2>消息通知</h2>
         <ul>
-            {% for invitation in invitations %}
+            {% for notification in notifications %}
             <li>
-                <span class="invitation-info">
-                    <span>邀请人: {{ invitation.inviter.username }}</span>
-                    <span>队伍目的地: {{ invitation.team.destination }}</span>
-                    <a href="{{ url_for('view_team', team_id=invitation.team.id) }}">
-                        <button>查看队伍信息</button>
-                    </a>
-                    <span>状态: {{ invitation.status }}</span>
-                    <button onclick="handleInvitation(this, {{ invitation.id }}, 'accept')" {% if invitation.status != 'pending' %}disabled{% endif %}>接受</button>
-                    <button onclick="handleInvitation(this, {{ invitation.id }}, 'decline')" {% if invitation.status != 'pending' %}disabled{% endif %}>拒绝</button>
+                <span class="notification-info">
+                    <span>{{ notification.message }}</span>
+                    <span>状态: {{ '未读' if not notification.is_read else '已读' }}</span>
+                    <button onclick="markAsReadAndRedirect({{ notification.id }}, '{{ notification.link }}')" {% if notification.is_read %}disabled{% endif %}>查看</button>
                 </span>
             </li>
             {% endfor %}
@@ -100,17 +96,14 @@
     <a href="{{ url_for('home') }}">返回首页</a>
 
     <script>
-        function handleInvitation(button, invitationId, action) {
-            // 点击同意或拒绝后立即禁用两个按钮(实现只能点击一次按钮)
-            const buttons = button.parentElement.querySelectorAll('button');
-            buttons.forEach(btn => btn.disabled = true);
-
-            fetch('/handle_invitation', {
+        function markAsReadAndRedirect(notificationId, link) {
+            // 发送请求标记为已读
+            fetch('/mark_as_read', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ invitation_id: invitationId, action: action })
+                body: JSON.stringify({ notification_id: notificationId })
             })
             .then(response => {
                 if (!response.ok) {
@@ -120,18 +113,14 @@
             })
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
-                    button.parentElement.querySelector('span').innerText = action === 'accept' ? '已接受' : '已拒绝';
+                    // 跳转到指定的URL
+                    window.location.href = link;
                 } else {
                     alert('操作失败: ' + data.message);
-                    // Re-enable buttons if the operation failed
-                    buttons.forEach(btn => btn.disabled = false);
                 }
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
-                // Re-enable buttons if there was an error with the fetch operation
-                buttons.forEach(btn => btn.disabled = false);
             });
         }
     </script>

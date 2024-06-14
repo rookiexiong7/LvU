@@ -7,7 +7,7 @@ from sqlalchemy import text, and_, func, Integer, cast
 
 from forms import RegistrationForm, LoginForm, TeamForm, UserForm
 from forms import ManageTeamForm  # 新增管理队伍的表单
-from models import db, User, Team, team_membership, Invitation, Attractions
+from models import db, User, Team, team_membership, Invitation, Attractions, Notification
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -50,10 +50,10 @@ def index():
     return render_template('index.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
 
 
+# 用户注册
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
-    print(form.password.data, form.confirm_password.data)
     if form.validate_on_submit():
         existing_user = User.query.filter_by(
             username=form.username.data).first()
@@ -135,8 +135,6 @@ def create_team():
     form = TeamForm()
     user = current_user
     if form.validate_on_submit():
-        # 调试信息
-        print(f"Creating team with public_id and admin_id set to: {user.id}")
         team = Team(
             destination=form.destination.data,
             departure_location=form.departure_location.data,
@@ -147,7 +145,8 @@ def create_team():
             max_members=form.max_members.data,
             current_members=1,  # 创建时包含队伍创建者
             public_id=user.id,  # 记录队伍创建者
-            admin_id=user.id  # 初始化管理员为队伍创建者
+            admin_id=user.id,  # 初始化管理员为队伍创建者
+            travel_plan=None    # 初始化旅行计划
         )
         db.session.add(team)
         db.session.flush()  # 刷新 session 以获取新创建的 team.id
@@ -169,7 +168,6 @@ def create_team():
 @app.route('/sending_requests', methods=['GET', 'POST'])
 def sending_requests():
     teams = Team.query.all()
-    current_user_teams = current_user.teams
     approved_teams = []
     pending_teams = []
     deny_teams = []
@@ -237,20 +235,41 @@ def join_team(team_id):
     user = current_user
 
     if team.current_members >= team.max_members:
-        flash('T该队伍已满员。')
+        flash('该队伍已满员。')
         return redirect(url_for('joinable_teams'))
 
     if team in user.teams:
         flash('您已申请加入该队伍。')
         return redirect(url_for('joinable_teams'))
 
-    # 插入新的申请记录，设置 audit_status 为 0
-    ins = team_membership.insert().values(
-        join_user_id=user.id, team_id=team.id, audit_status=0)
-    db.session.execute(ins)
-    db.session.commit()
+    # 更改实现逻辑，检查是否存在对应的申请记录
+    membership = db.session.query(team_membership).filter_by(
+        join_user_id=user.id, team_id=team.id).first()
 
-    flash('加入请求已成功发送给队伍管理员。', 'success')
+    if membership:
+        if membership.audit_status == 2:
+            # 如果找到记录且 audit_status 为 2，则将其更新为 0
+            stmt = team_membership.update().where(
+                team_membership.c.join_user_id == user.id,
+                team_membership.c.team_id == team_id
+            ).values(audit_status=0)
+            db.session.execute(stmt)
+
+            db.session.commit()
+            flash('成功向队伍管理员发送入队申请', 'success')
+
+            add_notification(team.admin_id, f"你收到一条来自 {current_user.username} 的入队申请。", url_for('team_requests'))
+        else:
+            flash('您已经在该队伍中！')
+    else:
+        # 如果没找到，则新增一条记录
+        ins = team_membership.insert().values(
+            join_user_id=user.id, team_id=team.id, audit_status=0)
+        db.session.execute(ins)
+        db.session.commit()
+        flash('成功向队伍管理员发送入队申请', 'success')
+        add_notification(team.admin_id, f"你收到一条来自 {current_user.username} 的入队申请。", url_for('team_requests'))
+
     return redirect(url_for('joinable_teams'))
 
 
@@ -264,6 +283,10 @@ def approve_request(join_user_id, team_id):
         flash('您没有权限批准此请求。')
         return redirect(url_for('team_requests'))
 
+    if team.current_members >= team.max_members:
+        flash('无法批准请求，队伍已满员!')
+        return redirect(url_for('team_requests'))
+
     # 更新申请状态为1（审核通过）
     stmt = team_membership.update().where(
         team_membership.c.join_user_id == join_user_id,
@@ -272,6 +295,8 @@ def approve_request(join_user_id, team_id):
     db.session.execute(stmt)
     team.current_members += 1
     db.session.commit()
+
+    add_notification(join_user_id, f"你的入队申请被 {current_user.username} 批准。", url_for('sending_requests'))
 
     flash('请求已通过！', 'success')
     return redirect(url_for('team_requests'))
@@ -286,22 +311,17 @@ def deny_request(join_user_id, team_id):
         flash('您没有权限拒绝此请求。')
         return redirect(url_for('team_requests'))
 
-    # # 更新申请状态为2（审核不通过）
-    # stmt = team_membership.update().where(
-    #     team_membership.c.join_user_id == join_user_id,
-    #     team_membership.c.team_id == team_id
-    # ).values(audit_status=2)
-    # db.session.execute(stmt)
-    # db.session.commit()
-    # 直接将申请记录删除, 避免无法重复申请的情况
-    user_team_record = team_membership.delete().where(
+    # 更新申请状态为2（审核不通过）
+    stmt = team_membership.update().where(
         team_membership.c.join_user_id == join_user_id,
         team_membership.c.team_id == team_id
-    )
-    db.session.execute(user_team_record)
+    ).values(audit_status=2)
+    db.session.execute(stmt)
     db.session.commit()
 
-    flash('请求已成功拒绝！', 'success')
+    add_notification(join_user_id, f"你的入队申请被 {current_user.username} 拒绝。", url_for('sending_requests'))
+
+    flash('已成功拒绝入队申请！', 'success')
     return redirect(url_for('team_requests'))
 
 
@@ -330,7 +350,7 @@ def team_requests():
     # 将查询结果包装成字典形式
     requests_dict = {}
     for request_info in pending_requests:
-        # 用用户ID和队伍ID作为唯一标识符
+        # 将用户ID和队伍ID作为唯一标识符
         request_id = f"{request_info.join_user_id}-{request_info.team_id}"
         requests_dict[request_id] = {
             'username': request_info.username,
@@ -338,8 +358,6 @@ def team_requests():
             'join_user_id': request_info.join_user_id,
             'team_id': request_info.team_id
         }
-
-    print(requests_dict)
 
     return render_template('page/team_requests.html', requests_dict=requests_dict)
 
@@ -372,7 +390,8 @@ def home():
         elif membership.audit_status == 0:
             pending_teams.append(team)
 
-    return render_template('page/home.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
+    return render_template('page/home.html',
+                           teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
 
 
 # 队伍成员查看队伍信息
@@ -446,19 +465,21 @@ def leave_team(team_id):
     db.session.commit()
     flash('成功退出队伍', 'success')
 
+    add_notification(team.admin_id, f"成员 {current_user.username} 退出目的地为 {team.destination} 的队伍。", url_for('view_team', team_id=team.id))
+
     # 重定向回到我的队伍页面或者其他适当的页面
     return redirect(url_for('my_join_team'))
 
 
+# 管理的队伍界面
 @app.route('/my_manage_team', methods=['GET'])
 @login_required
 def my_manage_team():
     teams = Team.query.all()
-    current_user_teams = current_user.teams
     approved_teams = []
     pending_teams = []
 
-    for team in current_user_teams:
+    for team in teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
 
@@ -472,15 +493,15 @@ def my_manage_team():
     return render_template('page/my_manage_team.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams)
 
 
+# 加入的队伍界面
 @app.route('/my_join_team', methods=['GET'])
 @login_required
 def my_join_team():
     teams = Team.query.all()
-    current_user_teams = current_user.teams
     approved_teams = []
     pending_teams = []
 
-    for team in current_user_teams:
+    for team in teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
 
@@ -494,16 +515,16 @@ def my_join_team():
     return render_template('page/my_join_team.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams)
 
 
+# 加入队伍界面
 @app.route('/joinable_teams', methods=['GET'])
 @login_required
 def joinable_teams():
     teams = Team.query.all()
-    current_user_teams = current_user.teams
     approved_teams = []
     pending_teams = []
     username = current_user.username
 
-    for team in current_user_teams:
+    for team in teams:
         membership = db.session.query(team_membership).filter_by(
             join_user_id=current_user.id, team_id=team.id).first()
 
@@ -540,6 +561,15 @@ def manage_team(team_id):
             db.session.commit()
             flash('成功更新队伍信息！', 'success')
 
+            members = db.session.query(User).join(team_membership).filter(
+                team_membership.c.team_id == team.id,
+                team_membership.c.audit_status == 1
+            ).all()
+            # 给队伍成员发送队伍信息更新的通知
+            for member in members:
+                if member.id != team.admin_id:
+                    add_notification(member.id, f"前往 {team.destination} 的队伍信息被管理员更新，请查看。", url_for('view_team', team_id=team.id))
+
         return redirect(url_for('manage_team', team_id=team.id))
 
     # 只获取审核通过的成员
@@ -573,6 +603,7 @@ def remove_member(team_id, user_id):
         team.current_members -= 1
         db.session.commit()
         flash('成员已成功移除！', 'success')
+        add_notification(user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_team'))
 
     return redirect(url_for('manage_team', team_id=team_id))
 
@@ -596,6 +627,7 @@ def transfer_admin(team_id, user_id):
     db.session.commit()
 
     flash(f'管理员权限已转移给 {new_admin.username}.', 'success')
+    add_notification(new_admin.id, f"你已被设为前往 {team.destination} 的队伍的管理员。", url_for('my_manage_team'))
     return redirect(url_for('manage_team', team_id=team.id))
 
 
@@ -620,6 +652,11 @@ def invite_user():
     if invitee.id == current_user.id:
         return jsonify({'success': False, 'message': '不能邀请自己加入队伍'})
 
+    # 检查用户是否已经在队伍中
+    membership = db.session.query(team_membership).filter_by(join_user_id=invitee.id, team_id=team.id, audit_status=1).first()
+    if membership:
+        return jsonify({'success': False, 'message': '用户已在队伍中，无法再次邀请'})
+
     # 检查队伍是否已满
     if team.current_members >= team.max_members:
         return jsonify({'success': False, 'message': '队伍人数已满，无法邀请更多成员'})
@@ -633,6 +670,8 @@ def invite_user():
     )
     db.session.add(invitation)
     db.session.commit()
+
+    add_notification(invitee.id, f"你收到来自 {current_user.username} 的入队邀请。", url_for('received_invitations'))
 
     return jsonify({'success': True, 'message': '邀请已发送'})
 
@@ -679,30 +718,96 @@ def handle_invitation():
 
         if team.admin_id == inviter_id:
             # 直接加入队伍
-            ins = team_membership.insert().values(
-                join_user_id=invitee_id, team_id=team_id, audit_status=1)
-            db.session.execute(ins)
-            team.current_members += 1
+            membership = db.session.query(team_membership).filter_by(
+                join_user_id=invitee_id, team_id=team.id).first()
+
+            if membership:
+                if membership.audit_status == 2 or membership.audit_status == 0:
+                    # 如果找到记录且 audit_status 为 2 或 0，则将其更新为 1
+                    stmt = team_membership.update().where(
+                        team_membership.c.join_user_id == invitee_id,
+                        team_membership.c.team_id == team.id
+                    ).values(audit_status=1)
+                    db.session.execute(stmt)
+
+                    team.current_members += 1
+                else:
+                    flash('您已经在该队伍中！')
+            else:
+                # 如果没找到，则新增一条记录
+                ins = team_membership.insert().values(
+                    join_user_id=invitee_id, team_id=team_id, audit_status=1)
+                db.session.execute(ins)
+                team.current_members += 1
 
             invitation.status = 'accepted'
+            add_notification(inviter_id, f"你的邀请被 {current_user.username} 接受了。", url_for('sent_invitations'))
             db.session.commit()
             return jsonify({'success': True, 'message': '邀请已接受'})
         else:
-            # 向队伍管理员发送入队申请, 设置 audit_status 为 0
-            ins = team_membership.insert().values(
-                join_user_id=invitee_id, team_id=team_id, audit_status=0)
-            db.session.execute(ins)
+            membership = db.session.query(team_membership).filter_by(
+                join_user_id=invitee_id, team_id=team.id).first()
+
+            if membership:
+                if membership.audit_status == 2:
+                    # 如果找到记录且 audit_status 为 2，则将其更新为 0
+                    stmt = team_membership.update().where(
+                        team_membership.c.join_user_id == invitee_id,
+                        team_membership.c.team_id == team.id
+                    ).values(audit_status=0)
+                    db.session.execute(stmt)
+                else:
+                    flash('您已经在该队伍中！')
+            else:
+                # 如果没找到，则新增一条记录
+                ins = team_membership.insert().values(
+                    join_user_id=invitee_id, team_id=team_id, audit_status=0)
+                db.session.execute(ins)
 
             invitation.status = 'accepted'
+            add_notification(inviter_id, f"你的邀请被 {current_user.username} 接受了。", url_for('sent_invitations'))
             db.session.commit()
             return jsonify({'success': True, 'message': '邀请已接受！\n已成功向队伍管理员发送入队申请'})
 
     elif action == 'decline':
         invitation.status = 'declined'
+        add_notification(invitation.inviter_id, f"你的邀请被 {current_user.username} 拒绝了。", url_for('sent_invitations'))
         db.session.commit()
         return jsonify({'success': True, 'message': '邀请已拒绝'})
 
     return jsonify({'success': False, 'message': '无效的操作'}), 400
+
+
+# 新增通知消息
+def add_notification(user_id, message, link=None):
+    notification = Notification(user_id=user_id, message=message, link=link)
+    db.session.add(notification)
+    db.session.commit()
+
+
+# 消息通知界面
+@app.route('/notifications')
+@login_required
+def notifications():
+    notifications_ = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.timestamp.desc()).all()
+    return render_template('page/notifications.html', notifications=notifications_)
+
+
+# 更新消息阅读状态
+@app.route('/mark_as_read', methods=['POST'])
+@login_required
+def mark_as_read():
+    data = request.get_json()
+    notification_id = data.get('notification_id')
+    notification = Notification.query.get_or_404(notification_id)
+
+    if notification.user_id != current_user.id:
+        return jsonify({'success': False, 'message': '您没有权限标记此通知为已读'}), 403
+
+    notification.is_read = True
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': '消息已标记为已读'})
 
 
 if __name__ == '__main__':

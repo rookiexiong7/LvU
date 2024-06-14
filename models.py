@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from sqlalchemy.orm import backref
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -74,3 +75,15 @@ class Attractions(db.Model):
     简介 = db.Column(db.Text)
     链接 = db.Column(db.String(255))
     图片 = db.Column(db.String(255))
+
+
+# 存储通知消息
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+    link = db.Column(db.String(200), nullable=True)
+
+    user = db.relationship('User', backref='notifications')

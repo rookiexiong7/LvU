@@ -11,7 +11,7 @@ CREATE TABLE `team`  (
   `team_type` varchar(100) COMMENT '队伍类型',
   `travel_time` varchar(100) NOT NULL COMMENT '游玩时间',
   `travel_budget` int UNSIGNED NOT NULL COMMENT '旅游预算',  -- 将字段类型改为非负整数
-  `max_members` int NULL DEFAULT 0 COMMENT '组队人数',
+  `max_members` int NULL DEFAULT 0 COMMENT '最大组队人数',
   `current_members` int NOT NULL DEFAULT 0 COMMENT '当前组队人数',
   `public_id` int NOT NULL COMMENT '发起人id（关联user表的id）',
   `admin_id` int NULL DEFAULT 1 COMMENT '管理员id（关联user表的id）',
@@ -21,8 +21,8 @@ CREATE TABLE `team`  (
 
 -- 插入 team 表的示例数据
 INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1, '');
-INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 1, 1, 2, '');
-INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 1, 1, 3, '');
+INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 2, 1, 2, '');
+INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 2, 1, 3, '');
 
 -- 创建 user 表
 CREATE TABLE `user`  (
@@ -88,5 +88,16 @@ CREATE TABLE `invitation` (
   `inviter_id` int NOT NULL COMMENT '邀请人id（关联user表的id）',
   `invitee_id` int NOT NULL COMMENT '被邀请人id（关联user表的id）',
   `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT '邀请状态：pending, accepted, declined',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+-- 创建 notification 表
+CREATE TABLE `notification` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` int NOT NULL COMMENT '用户id（关联user表的id）',
+  `message` varchar(500) NOT NULL COMMENT '消息内容',
+  `timestamp` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '时间戳',
+  `is_read` boolean NOT NULL DEFAULT FALSE COMMENT '是否已读',
+  `link` varchar(200) DEFAULT NULL COMMENT '链接',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;

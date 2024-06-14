@@ -80,6 +80,12 @@
               "target": "_self"
             }
           ]
+        },
+        {
+          "title": "通知消息",
+          "icon": "fa fa-envelope",
+          "href": "notifications",
+          "target": "_self"
         }
       ]
     }
