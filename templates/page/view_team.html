@@ -176,6 +176,15 @@
             {% endfor %}
         </ul>
     </div>
+    <!-- 新增邀请用户功能 -->
+    <div class="invite-section">
+        <h2>邀请用户</h2>
+        <form id="inviteForm">
+            <input type="text" id="inviteUsername" placeholder="输入用户名">
+            <button type="button" onclick="inviteUser()">邀请</button>
+        </form>
+    </div>
+    <a href="{{ url_for('my_manage_team') }}">返回</a>
 
     <a href="{{ url_for('joinable_teams') }}">退出</a>
 

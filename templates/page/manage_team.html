@@ -10,6 +10,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f4f4f9;
         }
 
         h2 {
@@ -35,11 +36,22 @@
         form {
             margin-left: 10px;
         }
+        .invite-section {
+            text-align: center;
+        }
+        #inviteForm {
+            display: inline-block;
+        }
+        #inviteUsername {
+            padding: 10px;
+            font-size: 16px;
+        }
 
         a,
         button {
-            display: inline-block;
-            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
 
         button:disabled {
@@ -156,15 +168,7 @@
         </li>
         {% endfor %}
     </ul>
-    <!-- 新增邀请用户功能 -->
-    <div class="invite-section">
-        <h2>邀请用户</h2>
-        <form id="inviteForm">
-            <input type="text" id="inviteUsername" placeholder="输入用户名">
-            <button type="button" onclick="inviteUser()">邀请</button>
-        </form>
-    </div>
-    <a href="{{ url_for('my_manage_team') }}">返回</a>
+
 
     <!-- 利用Modal实现警告弹窗 -->
     <div id="myModal" class="modal">
