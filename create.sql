@@ -101,3 +101,31 @@ CREATE TABLE `notification` (
   `link` varchar(200) DEFAULT NULL COMMENT '链接',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
+
+-- 添加 team 表的外键约束
+ALTER TABLE `team`
+ADD CONSTRAINT `fk_team_public_user`
+FOREIGN KEY (`public_id`) REFERENCES `user` (`id`),
+ADD CONSTRAINT `fk_team_admin_user`
+FOREIGN KEY (`admin_id`) REFERENCES `user` (`id`);
+
+-- 添加 user_team 表的外键约束
+ALTER TABLE `user_team`
+ADD CONSTRAINT `fk_user_team_team`
+FOREIGN KEY (`team_id`) REFERENCES `team` (`id`),
+ADD CONSTRAINT `fk_user_team_user`
+FOREIGN KEY (`join_user_id`) REFERENCES `user` (`id`);
+
+-- 添加 invitation 表的外键约束
+ALTER TABLE `invitation`
+ADD CONSTRAINT `fk_invitation_team`
+FOREIGN KEY (`team_id`) REFERENCES `team` (`id`),
+ADD CONSTRAINT `fk_invitation_inviter_user`
+FOREIGN KEY (`inviter_id`) REFERENCES `user` (`id`),
+ADD CONSTRAINT `fk_invitation_invitee_user`
+FOREIGN KEY (`invitee_id`) REFERENCES `user` (`id`);
+
+-- 添加 notification 表的外键约束
+ALTER TABLE `notification`
+ADD CONSTRAINT `fk_notification_user`
+FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
