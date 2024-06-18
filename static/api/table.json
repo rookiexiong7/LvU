@@ -1,6 +1,51 @@
 {
     "code": 0,
     "msg": "",
-    "count": 0,
-    "data": []
+    "count": 4,
+    "data": [
+        {
+            "id": 1,
+            "destination": "福州",
+            "departure_location": "上海",
+            "travel_mode": "火车",
+            "team_type": "家庭游",
+            "travel_time": "2024-06-10",
+            "travel_budget": 5000,
+            "max_members": 5,
+            "current_members": 1
+        },
+        {
+            "id": 2,
+            "destination": "南京",
+            "departure_location": "广州",
+            "travel_mode": "火车",
+            "team_type": "自驾游",
+            "travel_time": "2024-06-15",
+            "travel_budget": 3000,
+            "max_members": 4,
+            "current_members": 2
+        },
+        {
+            "id": 3,
+            "destination": "厦门",
+            "departure_location": "深圳",
+            "travel_mode": "大巴",
+            "team_type": "跟团游",
+            "travel_time": "2024-06-20",
+            "travel_budget": 2000,
+            "max_members": 7,
+            "current_members": 3
+        },
+        {
+            "id": 4,
+            "destination": "衢州",
+            "departure_location": "杭州",
+            "travel_mode": "火车",
+            "team_type": "跟团游",
+            "travel_time": "2024-06-17",
+            "travel_budget": 3000,
+            "max_members": 6,
+            "current_members": 1
+        }
+    ]
 }

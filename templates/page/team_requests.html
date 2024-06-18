@@ -96,11 +96,13 @@
                 {{ request_info['username'] }}想要加入前往{{ request_info['destination'] }}的队伍
             </span>
             <form method="POST"
-                action="{{ url_for('approve_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}">
+                action="{{ url_for('approve_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}"
+                style="padding: 0px;width:auto;box-shadow:none;border:0px">
                 <button type="submit">同意</button>
             </form>
             <form method="POST"
-                action="{{ url_for('deny_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}">
+                action="{{ url_for('deny_request', join_user_id=request_info['join_user_id'], team_id=request_info['team_id']) }}"
+                style="padding: 0px;width:auto;box-shadow:none;border:0px">
                 <button type="submit">拒绝</button>
             </form>
         </li>

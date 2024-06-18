@@ -637,7 +637,6 @@ def manage_team(team_id):
     team = Team.query.get_or_404(team_id)
 
     if team.admin_id != current_user.id:
-        flash('您没有权限管理此队伍。', 'danger')
         return redirect(url_for('my_manage_team'))
 
     form = ManageTeamForm(obj=team)
@@ -673,6 +672,35 @@ def manage_team(team_id):
     return render_template('page/manage_team.html', team=team, form=form, members=members)
 
 
+@app.route('/manage_team/update', methods=['POST'])
+def update_team():
+    team_id = request.form.get('id')
+    destination = request.form.get('destination')
+    departure_location = request.form.get('departure_location')
+    travel_mode = request.form.get('travel_mode')
+    team_type = request.form.get('team_type')
+    travel_time = request.form.get('travel_time')
+    travel_budget = request.form.get('travel_budget')
+    max_members = request.form.get('max_members')
+
+    # 根据 team_id 查询数据库中的队伍记录
+    team = Team.query.get(team_id)
+    if not team:
+        return 'Team not found', 404
+
+    # 更新队伍信息
+    team.destination = destination
+    team.departure_location = departure_location
+    team.travel_mode = travel_mode
+    team.team_type = team_type
+    team.travel_time = travel_time
+    team.travel_budget = travel_budget
+    team.max_members = max_members
+
+    db.session.commit()
+    return 'Team updated successfully'
+
+
 # 管理员移除队员
 @app.route('/remove_member/<int:team_id>/<int:user_id>', methods=['POST'])
 @login_required
@@ -696,7 +724,7 @@ def remove_member(team_id, user_id):
         db.session.commit()
         flash('成员已成功移除！', 'success')
         add_notification(
-            user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_team'))
+            user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_team', team_id=team.id))
 
     return redirect(url_for('manage_team', team_id=team_id))
 
@@ -707,8 +735,6 @@ def remove_member(team_id, user_id):
 def transfer_admin(team_id, user_id):
     team = Team.query.get_or_404(team_id)
     if team.admin_id != current_user.id:
-        flash(
-            '您没有权限转移此队伍的管理员权限。', 'danger')
         return redirect(url_for('manage_team', team_id=team.id))
 
     new_admin = User.query.get_or_404(user_id)
