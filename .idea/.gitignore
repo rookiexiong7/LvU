@@ -1,3 +1,5 @@
-# 默认忽略的文件
+# Default ignored files
 /shelf/
 /workspace.xml
+__pycache__/
+*.pyc

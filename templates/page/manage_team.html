@@ -1,137 +1,337 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理队伍</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        li {
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .team-info {
-            flex-grow: 1;
-        }
-
-        form {
-            margin-left: 10px;
-        }
-
-        a,
-        button {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        button:disabled {
-            background-color: grey;
-            cursor: not-allowed;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            padding-top: 100px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0, 0, 0);
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-    </style>
+    <meta charset="utf-8">
+    <title>管理队伍信息 - {{ team.destination }}</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/layui-v2.6.3/css/layui.css' ) }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='js/lay-module/step-lay/step.css') }}" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='public.css') }}" media="all">
 </head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+    }
+
+    ul li {
+        background-color: #ffffff;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        margin-bottom: 20px;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        /* 垂直居中 */
+        gap: 10px;
+        /* 按钮之间的间距 */
+    }
+
+    .button-group form {
+        margin: 0;
+    }
+
+    .button-group button {
+        margin-right: 10px;
+        /* 按钮与右侧的距离 */
+    }
+
+    .team-info {
+        flex-grow: 1;
+    }
+
+    .invite-section {
+        text-align: center;
+    }
+
+    #inviteForm {
+        display: inline-block;
+    }
+
+    #inviteUsername {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    a,
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        background-color: grey;
+        cursor: not-allowed;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        padding-top: 100px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .attraction-info a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .attraction-info a:hover {
+        text-decoration: underline;
+    }
+
+    a,
+    button {
+        display: inline-block;
+        margin-right: 10px;
+        padding: 10px 15px;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    a:hover,
+    button:hover {
+        background-color: #0056b3;
+    }
+</style>
 
 <body>
-    <h2>管理队伍信息 - {{ team.destination }}</h2>
-    <form id="updateTeamForm" method="POST" action="{{ url_for('manage_team', team_id=team.id) }}">
-        {{ form.hidden_tag() }}
-        <div>
-        {{ form.destination.label }} {{ form.destination(size=20) }}
-    </div>
-    <div>
-        {{ form.departure_location.label }} {{ form.departure_location(size=20) }}
-    </div>
-    <div>
-        {{ form.travel_mode.label }} {{ form.travel_mode(size=20) }}
-    </div>
-    <div>
-        {{ form.team_type.label }} {{ form.team_type(size=20) }}
-    </div>
-    <div>
-        {{ form.travel_time.label }} {{ form.travel_time(size=20) }}
-    </div>
-    <div>
-        {{ form.travel_budget.label }} {{ form.travel_budget(size=20) }}
-    </div>
-    <div>
-        {{ form.max_members.label }} {{ form.max_members(size=5) }}
-    </div>
-        <button id="updateTeamButton" type="submit">更新队伍信息</button>
-    </form>
-    <h2>管理队伍成员</h2>
-    <ul>
-        {% for member in members %}
-        <li>
-            <span class="member-info">{{ member.username }}</span>
-            {% if member.id != current_user.id %}
-            <form method="POST" action="{{ url_for('remove_member', team_id=team.id, user_id=member.id) }}">
-                <button type="submit">移除队员</button>
-            </form>
-            <form method="POST" action="{{ url_for('transfer_admin', team_id=team.id, user_id=member.id) }}">
-                <button type="submit">转交管理员</button>
-            </form>
-            {% else %}
-            <button type="button" disabled>移除队员</button>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    <a href="{{ url_for('my_manage_team') }}">返回</a>
-
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+            <div class="layui-fluid">
+                <div class="layui-card">
+                    <div class="layui-card-body" style="padding-top: 40px;">
+                        <div class="layui-carousel" id="stepForm" lay-filter="stepForm" style="margin: 0 auto;">
+                            <div carousel-item>
+                                <div>
+                                    <form class="layui-form"
+                                        style="margin: auto auto;max-width: 460px;padding-top: 40px;">
+                                        <input type="hidden" name="id" value="{{ team.id }}">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">目的地</label>
+                                            <div class="layui-input-block">
+                                                {{ form.destination(size=20, class_="layui-input") }}
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">出发地点</label>
+                                            <div class="layui-input-block">
+                                                {{ form.departure_location(size=20, class_="layui-input") }}
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">出行方式</label>
+                                            <div class="layui-input-block">
+                                                <select name="travel_mode" id="travel_mode" lay-verify="required">
+                                                    <option value="飞机">飞机</option>
+                                                    <option value="火车">火车</option>
+                                                    <option value="大巴">大巴</option>
+                                                    <option value="私家车">私家车</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">队伍类型</label>
+                                            <div class="layui-input-block">
+                                                <select name="team_type" id="team_type" lay-verify="required">
+                                                    <option value="家庭游">家庭游</option>
+                                                    <option value="自驾游">自驾游</option>
+                                                    <option value="跟团游">跟团游</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">旅行时间</label>
+                                            <div class="layui-input-block">
+                                                {{ form.travel_time(size=20, class_="layui-input") }}
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">旅行预算</label>
+                                            <div class="layui-input-block">
+                                                {{ form.travel_budget(size=20, class_="layui-input") }}
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">最大队员数</label>
+                                            <div class="layui-input-block">
+                                                {{ form.max_members(size=5, class_="layui-input") }}
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-input-block">
+                                                <button class="layui-btn" lay-submit lay-filter="formStep">下一步</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div>
+                                    <form class="layui-form" style="margin: 0 auto;max-width: 460px;padding-top: 40px;">
+                                        <input type="hidden" name="id" value="{{ team.id }}">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">目的地:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{ form.destination.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">出发地点:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{
+                                                    form.departure_location.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">出行方式:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{ form.travel_mode.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">队伍类型:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{ form.team_type.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">旅行时间:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{ form.travel_time.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">旅行预算:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{ form.travel_budget.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">最大队员数:</label>
+                                            <div class="layui-input-block">
+                                                <div class="layui-form-mid layui-word-aux">{{ form.max_members.data }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="layui-form-item">
+                                            <div class="layui-input-block">
+                                                <button type="button"
+                                                    class="layui-btn layui-btn-primary pre">上一步</button>
+                                                <button class="layui-btn" lay-submit
+                                                    lay-filter="formStep2">确认更新</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div>
+                                    <div style="text-align: center; margin-top: 90px;">
+                                        <i class="layui-icon layui-circle"
+                                            style="color: white; font-size: 30px; font-weight: bold; background: #52C41A; padding: 20px; line-height: 80px;">&#xe605;</i>
+                                        <div style="font-size: 24px; color: #333; font-weight: 500; margin-top: 30px;">
+                                            更新成功</div>
+                                        <div style="font-size: 14px; color: #666; margin-top: 20px;">队伍信息已成功更新。</div>
+                                        <div style="text-align: center; margin-top: 50px;">
+                                            <button class="layui-btn next">返回</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div style="color: #666;margin-top: 30px;margin-bottom: 40px;padding-left: 30px;">
+                            <h2>管理队伍成员</h2>
+                            <ul>
+                                {% for member in members %}
+                                <li>
+                                    <span class="member-info">{{ member.username }}</span>
+                                    {% if member.id != current_user.id %}
+                                    <div class="button-group" style="margin-bottom:auto">
+                                        <form method="POST"
+                                            action="{{ url_for('remove_member', team_id=team.id, user_id=member.id) }} "
+                                            style="margin: 0 auto;background-color: #ffffff;border-radius: 4px;padding: 0px;width:auto;box-shadow:none;border:0px">
+                                            <button type="submit">移除队员</button>
+                                        </form>
+                                        <form method="POST"
+                                            action="{{ url_for('transfer_admin', team_id=team.id, user_id=member.id) }}"
+                                            style="margin: 0 auto;background-color: #ffffff;border-radius: 4px;padding: 0px;width:auto;box-shadow:none;border:0px">
+                                            <button type="submit">转交管理员</button>
+                                        </form>
+                                    </div>
+                                    {% else %}
+                                    <button type="button" disabled>移除队员</button>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+        <a href="{{ url_for('my_manage_team') }}">返回</a>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
     <!-- 利用Modal实现警告弹窗 -->
     <div id="myModal" class="modal">
         <div class="modal-content">
@@ -139,8 +339,127 @@
             <p id="modal-message"></p>
         </div>
     </div>
-
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='lib/layui-v2.6.3/layui.js' ) }}" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='js/lay-config.js' ) }}" charset="utf-8"></script>
+    <script src="{{ url_for('static', filename='lib/jquery-3.4.1/jquery-3.4.1.min.js' ) }}" charset="utf-8"></script>
     <script>
+        layui.use(['form', 'step', 'jquery'], function () {
+            var $ = layui.$,
+                form = layui.form,
+                step = layui.step;
+
+            step.render({
+                elem: '#stepForm',
+                filter: 'stepForm',
+                width: '100%',
+                stepWidth: '750px',
+                height: '500px',
+                stepItems: [{
+                    title: '更新队伍信息'
+                }, {
+                    title: '确认更新信息'
+                }, {
+                    title: '完成'
+                }]
+            });
+
+
+
+            form.on('submit(formStep)', function (data) {
+                // Populate confirmation step with the data from the form
+                var teamId = $('input[name="id"]').val(); // 获取team.id的值
+                console.log("teamId:", teamId);
+                step.next('#stepForm');
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[0].innerText = data.field.destination;
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[1].innerText = data.field.departure_location;
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[2].innerText = data.field.travel_mode;
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[3].innerText = data.field.team_type;
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[4].innerText = data.field.travel_time;
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[5].innerText = data.field.travel_budget;
+                document.querySelectorAll('.layui-form-mid.layui-word-aux')[6].innerText = data.field.max_members;
+                return false;
+            });
+
+
+            form.on('submit(formStep2)', function (data) {
+                var teamId = $('input[name="id"]').val();
+                console.log("teamId:", teamId);
+                var destination = $('.layui-form-mid:eq(0)').text().trim();
+                var departureLocation = $('.layui-form-mid:eq(1)').text().trim();
+                var travelMode = $('.layui-form-mid:eq(2)').text().trim();
+                var teamType = $('.layui-form-mid:eq(3)').text().trim();
+                var travelTime = $('.layui-form-mid:eq(4)').text().trim();
+                var travelBudget = $('.layui-form-mid:eq(5)').text().trim();
+                var maxMembers = $('.layui-form-mid:eq(6)').text().trim();
+
+                var data = {
+                    id: teamId,
+                    destination: destination,
+                    departure_location: departureLocation,
+                    travel_mode: travelMode,
+                    team_type: teamType,
+                    travel_time: travelTime,
+                    travel_budget: travelBudget,
+                    max_members: maxMembers
+                };
+                console.log("sadfdsaf:", data);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/manage_team/update',
+                    data: data,
+                    success: function (response) {
+                        // 处理成功响应，例如重新加载页面或跳转到其他页面
+                        step.next('#stepForm');
+                    },
+                    error: function (error) {
+                        // 处理错误情况
+                        console.error('Error occurred:', error);
+                    }
+                });
+                return false; // Prevent form submission
+            });
+
+            $('.pre').click(function () {
+                step.pre('#stepForm');
+            });
+
+            $('.next').click(function () {
+                step.next('#stepForm');
+            });
+        })
+ function addToTravelPlan(attractionName) {
+            const teamId = {{ team.id }};
+        fetch('/add_to_travel_plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ team_id: teamId, attraction_name: attractionName })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('景点已成功添加到旅行计划！');
+                    // 更新界面上显示的旅行计划部分
+                    const travelPlanElement = document.getElementById('travelPlan');
+                    const currentPlan = travelPlanElement.innerText;
+                    if (currentPlan.trim() === '') {
+                        travelPlanElement.innerText = attractionName;
+                    } else {
+                        travelPlanElement.innerText = `${currentPlan}，${attractionName}`;
+                    }
+                } else {
+                    alert('操作失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
         // Function to show modal messages
         function showModal(message) {
             document.getElementById("modal-message").innerText = message;
@@ -165,6 +484,7 @@
         {% endfor %}
         {% endif %}
         {% endwith %}
+
     </script>
 </body>
 

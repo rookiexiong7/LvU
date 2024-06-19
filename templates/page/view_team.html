@@ -18,7 +18,9 @@
             color: #333;
         }
 
-        .team-info, .members-info, .attractions-info {
+        .team-info,
+        .members-info,
+        .attractions-info {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -26,7 +28,9 @@
             margin-bottom: 20px;
         }
 
-        .team-info p, .members-info p, .attractions-info p {
+        .team-info p,
+        .members-info p,
+        .attractions-info p {
             margin: 5px 0;
             color: #555;
         }
@@ -93,7 +97,8 @@
             text-decoration: underline;
         }
 
-        a, button {
+        a,
+        button {
             display: inline-block;
             margin-right: 10px;
             padding: 10px 15px;
@@ -105,7 +110,8 @@
             text-align: center;
         }
 
-        a:hover, button:hover {
+        a:hover,
+        button:hover {
             background-color: #0056b3;
         }
     </style>
@@ -170,7 +176,6 @@
             {% endfor %}
         </ul>
     </div>
-
     <!-- 新增邀请用户功能 -->
     <div class="invite-section">
         <h2>邀请用户</h2>
@@ -179,61 +184,39 @@
             <button type="button" onclick="inviteUser()">邀请</button>
         </form>
     </div>
+    <a href="{{ url_for('my_manage_team') }}">返回</a>
 
-    <a href="{{ url_for('home') }}">退出</a>
+    <a href="{{ url_for('joinable_teams') }}">退出</a>
 
     <script>
-        function inviteUser() {
-            const username = document.getElementById('inviteUsername').value;
-            const teamId = {{ team.id }};
-            if (username) {
-                fetch('/invite_user', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username: username, team_id: teamId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('邀请已发送');
-                    } else {
-                        alert('邀请失败: ' + data.message);
-                    }
-                });
-            } else {
-                alert('请输入用户名');
-            }
-        }
         function addToTravelPlan(attractionName) {
             const teamId = {{ team.id }};
-            fetch('/add_to_travel_plan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ team_id: teamId, attraction_name: attractionName })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('景点已成功添加到旅行计划！');
-                        // 更新界面上显示的旅行计划部分
-                        const travelPlanElement = document.getElementById('travelPlan');
-                        const currentPlan = travelPlanElement.innerText;
-                        if (currentPlan.trim() === '') {
-                            travelPlanElement.innerText = attractionName;
-                        } else {
-                            travelPlanElement.innerText = `${currentPlan}，${attractionName}`;
-                        }
+        fetch('/add_to_travel_plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ team_id: teamId, attraction_name: attractionName })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('景点已成功添加到旅行计划！');
+                    // 更新界面上显示的旅行计划部分
+                    const travelPlanElement = document.getElementById('travelPlan');
+                    const currentPlan = travelPlanElement.innerText;
+                    if (currentPlan.trim() === '') {
+                        travelPlanElement.innerText = attractionName;
                     } else {
-                        alert('操作失败: ' + data.message);
+                        travelPlanElement.innerText = `${currentPlan}，${attractionName}`;
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+                } else {
+                    alert('操作失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
     </script>
 </body>
