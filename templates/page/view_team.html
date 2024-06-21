@@ -5,8 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>查看队伍信息</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/layui-v2.6.3/css/layui.css') }}" media="all">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
     <style>
+        .swiper-container {
+            width: 100%;
+            overflow: hidden;  /* 隐藏溢出部分 */
+            height: 350px;
+        }
+
+        .swiper-slide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -97,7 +112,16 @@
             text-decoration: underline;
         }
 
-        a,
+        a {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 10px 15px;
+            color: #007bff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+        }
         button {
             display: inline-block;
             margin-right: 10px;
@@ -110,88 +134,139 @@
             text-align: center;
         }
 
-        a:hover,
+        a:hover {
+            color: #0056b3;
+        }
         button:hover {
+            color: #fff;
             background-color: #0056b3;
         }
     </style>
 </head>
-
 <body>
-    <div class="team-info">
-        <h2>队伍信息</h2>
-        <p><strong>目的地:</strong> {{ team.destination }}</p>
-        <p><strong>出发地点:</strong> {{ team.departure_location }}</p>
-        <p><strong>出行方式:</strong> {{ team.travel_mode }}</p>
-        <p><strong>队伍类型:</strong> {{ team.team_type }}</p>
-        <p><strong>出行时间:</strong> {{ team.travel_time }}</p>
-        <p><strong>旅游预算:</strong> {{ team.travel_budget }}元</p>
-        <p><strong>最大人数:</strong> {{ team.max_members }}</p>
-        <p><strong>当前人数:</strong> {{ team.current_members }}</p>
-        <p><strong>旅行计划:</strong> {{ team.travel_plan }}</p>
-        <p><strong>队伍热度:</strong> {{ team.popularity }}</p>
-    </div>
-
-    <!-- 景点推荐部分 -->
-    <div class="attractions-info">
-        <h2>推荐景点</h2>
-        <ul>
-            {% for attraction in top_attractions %}
-            <li class="attraction-item">
-                <div class="attraction-info">
-                    <div>
-                        <h3>{{ attraction.景点名称 }}</h3>
-                        <p>{{ attraction.排名 }}</p>
-                        <p>简介：{{ attraction.简介 }}</p>
-                        <p>详细信息：<a href="{{ attraction.链接 }}">{{ attraction.链接 }}</a></p>
-                        <p><button onclick="addToTravelPlan('{{ attraction.景点名称 }}')">加入计划</button></p>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="layui-card">
+                        <div class="layui-card-header"><h2><strong>队伍信息</strong></h2></div>
+                        <div class="layui-card-body">
+                            <p><strong>目的地:</strong> {{ team.destination }}</p>
+                            <p><strong>出发地点:</strong> {{ team.departure_location }}</p>
+                            <p><strong>出行方式:</strong> {{ team.travel_mode }}</p>
+                            <p><strong>队伍类型:</strong> {{ team.team_type }}</p>
+                            <p><strong>出行时间:</strong> {{ team.travel_time }}</p>
+                            <p><strong>旅游预算:</strong> {{ team.travel_budget }}元</p>
+                            <p><strong>最大人数:</strong> {{ team.max_members }}</p>
+                            <p><strong>当前人数:</strong> {{ team.current_members }}</p>
+                            <p><strong>旅行计划:</strong> <span id="travelPlan">{{ team.travel_plan }}</span></p>
+                            <p><strong>队伍热度:</strong> {{ team.popularity }}</p>
+                        </div>
                     </div>
-                    <div>
-                        <img src="{{ attraction.图片 }}" alt="{{ attraction.景点名称 }}">
+                    <div class="layui-card">
+                        <div class="layui-card-header"><h2><strong>添加旅游景点</strong></h2></div>
+                        <div class="layui-card-body" id="addAttractionForm">
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" style="flex: 1; margin-right: 5%;" id="attractionName" placeholder="输入景点名称">
+                                <button type="button" onclick="addToTravelPlanInput()">添加</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-card" style="height: 156px">
+                        <div class="layui-card-header"><h2><strong>邀请用户</strong></h2></div>
+                        <div class="layui-card-body" id="inviteForm" >
+                            <div style="display: flex; align-items: center;">
+                                <input type="text" style="flex: 1; margin-right: 5%;" id="inviteUsername" placeholder="输入用户名">
+                                <button type="button" onclick="inviteUser()">邀请</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
 
-    <div class="members-info">
-        <h2>成员</h2>
-        <ul>
-            {% for member in approved_members %}
-            <li>
-                <span class="member-info">
-                    {% if member.id == team.admin_id %}
-                    <span class="admin-label">(管理员)</span>
-                    {% else %}
-                    <span>&nbsp;</span>
-                    {% endif %}
-                    <span>用户名: {{ member.username }}</span>
-                    <span>手机号: {{ member.phone }}</span>
-                    <span>性格: {{ member.character }}</span>
-                    <span>爱好: {{ member.travel_hobby }}</span>
-                    <span>居住地: {{ member.residence }}</span>
-                    <span>性别: {{ member.gender }}</span>
-                </span>
-            </li>
-            {% endfor %}
-        </ul>
+                <div class="layui-col-md8">
+                    <div class="layui-card" style="height: 470px;">
+                        <div class="layui-card-header"><h2><strong>推荐景点</strong></h2></div>
+                        <div class="layui-card-body">
+                            <div class="swiper-container">
+                                <div class="swiper-wrapper">
+                                    {% for attraction in top_attractions %}
+                                    <div class="swiper-slide">
+                                        <div class="attraction-item">
+                                            <div class="attraction-info">
+                                                <div>
+                                                    <h3>{{ attraction.景点名称 }}</h3>
+                                                    <p>{{ attraction.排名 }}</p>
+                                                    <p>简介：{{ attraction.简介 }}</p>
+                                                    <p>详细信息：<a href="{{ attraction.链接 }}">{{ attraction.链接 }}</a></p>
+                                                    <p><button onclick="addToTravelPlan('{{ attraction.景点名称 }}')">加入计划</button></p>
+                                                </div>
+                                                <div>
+                                                    <img src="{{ attraction.图片 }}" alt="{{ attraction.景点名称 }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <!-- Add Pagination -->
+                                <div class="swiper-pagination"></div>
+                                <!-- Add Navigation -->
+                                <div class="swiper-button-next"></div>
+                                <div class="swiper-button-prev"></div>
+                            </div>
+                        </div>
+                    </div>
+                                     
+                    <div class="layui-card">
+                        <div class="layui-card-header"><h2><strong>管理员信息</strong></h2></div>
+                        <div class="layui-card-body">
+                            <li>
+                                {% for member in approved_members %}
+                                {% if member.id == team.admin_id %}
+                                <span class="member-info">
+                                    <span class="admin-label">(管理员)</span>
+                                    <span>用户名: {{ member.username }}</span>
+                                    <span>手机号: {{ member.phone }}</span>
+                                    <span>性格: {{ member.character }}</span>
+                                    <span>爱好: {{ member.travel_hobby }}</span>
+                                    <span>居住地: {{ member.residence }}</span>
+                                    <span>性别: {{ member.gender }}</span>
+                                </span>
+                                {% endif %}
+                                {% endfor %}
+                            </li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                                                <div style="text-align: center; ">
+                                                    <a href="{{ url_for('my_manage_team') }}">返回</a>
+                                                </div>
+        </div>
     </div>
-    <!-- 新增邀请用户功能 -->
-    <div class="invite-section">
-        <h2>邀请用户</h2>
-        <form id="inviteForm">
-            <input type="text" id="inviteUsername" placeholder="输入用户名">
-            <button type="button" onclick="inviteUser()">邀请</button>
-        </form>
-    </div>
-    <a href="{{ url_for('my_manage_team') }}">返回</a>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var swiper = new Swiper('.swiper-container', {
+            loop: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            slidesPerView: 1,  // 每次只显示一个slide
+            spaceBetween: 0,   // slide之间的间距
+        });
+    });
 
-    <a href="{{ url_for('joinable_teams') }}">退出</a>
-
-    <script>
-        function addToTravelPlan(attractionName) {
-            const teamId = {{ team.id }};
+    function addToTravelPlan(attractionName) {
+        const teamId = {{ team.id }};
         fetch('/add_to_travel_plan', {
             method: 'POST',
             headers: {
@@ -199,27 +274,35 @@
             },
             body: JSON.stringify({ team_id: teamId, attraction_name: attractionName })
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('景点已成功添加到旅行计划！');
-                    // 更新界面上显示的旅行计划部分
-                    const travelPlanElement = document.getElementById('travelPlan');
-                    const currentPlan = travelPlanElement.innerText;
-                    if (currentPlan.trim() === '') {
-                        travelPlanElement.innerText = attractionName;
-                    } else {
-                        travelPlanElement.innerText = `${currentPlan}，${attractionName}`;
-                    }
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('景点已成功添加到旅行计划！');
+                // 更新界面上显示的旅行计划部分
+                const travelPlanElement = document.getElementById('travelPlan');
+                const currentPlan = travelPlanElement.innerText;
+                if (currentPlan.trim() === '') {
+                    travelPlanElement.innerText = attractionName;
                 } else {
-                    alert('操作失败: ' + data.message);
+                    travelPlanElement.innerText = `${currentPlan}，${attractionName}`;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            } else {
+                alert('操作失败: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
-    </script>
-</body>
+
+    function addToTravelPlanInput() {
+        const attractionName = document.getElementById('attractionName').value;
+        if (attractionName) {
+            addToTravelPlan(attractionName);
+        } else {
+            alert('请输入景点名称');
+        }
+    }
+</script>
 
 </html>

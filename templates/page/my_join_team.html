@@ -82,7 +82,7 @@
         {% for team in approved_teams %}
         <li>
             <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
-            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
+            <a href="{{ url_for('view_teamfriend', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
             <form method="POST" action="{{ url_for('leave_team', team_id=team.id) }}"
                 style="display: inline;padding: 0px;width:auto;box-shadow:none;border:0px;">
                 <button type="submit">退出队伍</button>

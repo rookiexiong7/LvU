@@ -15,7 +15,7 @@ from models import db, User, Team, team_membership, Invitation, Attractions, Not
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/lvu'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/lvu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -432,6 +432,18 @@ def view_team(team_id):
                            top_attractions=top_attractions)
 
 
+@app.route('/teamfriend/<int:team_id>', methods=['GET'])
+@login_required
+def view_teamfriend(team_id):
+    team = Team.query.get_or_404(team_id)
+    approved_members = db.session.query(User).join(team_membership).filter(
+        team_membership.c.team_id == team_id,
+        team_membership.c.audit_status == 1
+    ).all()
+
+    return render_template('page/view_teamfriend.html', team=team, approved_members=approved_members)
+
+
 # 添加旅行计划
 @app.route('/add_to_travel_plan', methods=['POST'])
 def add_to_travel_plan():
@@ -485,7 +497,7 @@ def leave_team(team_id):
     flash('成功退出队伍', 'success')
 
     add_notification(team.admin_id, f"成员 {current_user.username} 退出目的地为 {team.destination} 的队伍。", url_for(
-        'view_team', team_id=team.id))
+        'view_teamfriend', team_id=team.id))
 
     # 重定向回到我的队伍页面或者其他适当的页面
     return redirect(url_for('my_join_team'))
@@ -541,7 +553,7 @@ def Search(user_id, destination=None, departure_location=None, travel_mode=None,
     conn = pymysql.connect(host='localhost',  # 主机
                            user='root',  # 用户
                            port=3306,  # 端口
-                           password='12345',  # 密码
+                           password='123456',  # 密码
                            charset='utf8',  # 编码
                            database='lvu'  # 数据库名称
                            )
@@ -675,7 +687,7 @@ def manage_team(team_id):
             for member in members:
                 if member.id != team.admin_id:
                     add_notification(member.id, f"前往 {team.destination} 的队伍信息被管理员更新，请查看。", url_for(
-                        'view_team', team_id=team.id))
+                        'view_teamfriend', team_id=team.id))
 
         return redirect(url_for('manage_team', team_id=team.id))
 
@@ -742,7 +754,7 @@ def remove_member(team_id, user_id):
         db.session.commit()
         flash('成员已成功移除！', 'success')
         add_notification(
-            user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_team', team_id=team.id))
+            user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_teamfriend', team_id=team.id))
 
     return redirect(url_for('manage_team', team_id=team_id))
 

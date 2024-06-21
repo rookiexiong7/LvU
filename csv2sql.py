@@ -11,7 +11,7 @@ df = df.where(pd.notnull(df), None)
 try:
     cnx = mysql.connector.connect(
         user='root',
-        password='12345',
+        password='123456',
         host='localhost',
         database='lvu'
     )
