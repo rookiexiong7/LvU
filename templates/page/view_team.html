@@ -294,7 +294,29 @@
             console.error('Error:', error);
         });
     }
-
+        function inviteUser() {
+            const username = document.getElementById('inviteUsername').value;
+            const teamId = {{ team.id }};
+            if (username) {
+                fetch('/invite_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username, team_id: teamId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('邀请已发送');
+                    } else {
+                        alert('邀请失败: ' + data.message);
+                    }
+                });
+            } else {
+                alert('请输入用户名');
+            }
+        }
     function addToTravelPlanInput() {
         const attractionName = document.getElementById('attractionName').value;
         if (attractionName) {

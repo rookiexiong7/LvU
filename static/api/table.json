@@ -1,19 +1,6 @@
 {
     "code": 0,
     "msg": "",
-    "count": 1,
-    "data": [
-        {
-            "id": 3,
-            "popularity": 18,
-            "destination": "厦门",
-            "departure_location": "深圳",
-            "travel_mode": "大巴",
-            "team_type": "跟团游",
-            "travel_time": "2024-06-20",
-            "travel_budget": 2000,
-            "max_members": 7,
-            "current_members": 2
-        }
-    ]
+    "count": 0,
+    "data": []
 }
