@@ -86,7 +86,8 @@
         <li>
             <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
             <a href="{{ url_for('manage_team', team_id=team.id) }}">管理队伍</a>
-            <a href="{{ url_for('view_teamfriend', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
+            <a href="{{ url_for('view_teamfriend', team_id=team.id) }}">查看队员信息</a> 
+<a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a> 
         </li>
         {% endfor %}
     </ul>
