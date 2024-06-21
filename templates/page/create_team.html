@@ -25,7 +25,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/default.css') }}" media="all">
     <link rel="stylesheet" href="{{ url_for('static', filename='lib/font-awesome-4.7.0/css/font-awesome.min.css') }}"
         media="all">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}" media="all">
 </head>
 
 <body>
@@ -50,24 +49,13 @@
                     <div class="layui-form-item">
                         <label class="layui-form-label">出行方式</label>
                         <div class="layui-input-block">
-                            <select name="travel_mode" id="travel_mode" lay-verify="required">
-                                <option value="" selected>请选择出行方式</option>
-                                <option value="飞机">飞机</option>
-                                <option value="火车">火车</option>
-                                <option value="大巴">大巴</option>
-                                <option value="私家车">私家车</option>
-                            </select>
+                            {{ form.travel_mode(class_='layui-input', placeholder='请输入出行方式',required=false) }}
                         </div>
                     </div>
                     <div class="layui-form-item">
                         <label class="layui-form-label required">队伍类型<span style="color: red;">*</span></label>
                         <div class="layui-input-block">
-                            <select name="team_type" id="team_type">
-                                <option value="">请选择队伍类型</option>
-                                <option value="家庭游">家庭游</option>
-                                <option value="自驾游">自驾游</option>
-                                <option value="跟团游">跟团游</option>
-                            </select>
+                            {{ form.team_type(class_='layui-input', placeholder='请输入队伍类型') }}
                         </div>
                     </div>
                     <div class="layui-form-item">
@@ -98,7 +86,7 @@
 
         </div>
     </div>
-    <script src="{{ url_for('static', filename='/lib/layui-v2.6.3/layui.js') }}" charset="utf-8"></script>
+
     <script>
         layui.use(['form', 'miniPage'], function () {
             var form = layui.form,

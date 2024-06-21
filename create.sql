@@ -16,16 +16,13 @@ CREATE TABLE `team`  (
   `public_id` int NOT NULL COMMENT '发起人id（关联user表的id）',
   `admin_id` int NULL DEFAULT 1 COMMENT '管理员id（关联user表的id）',
   `travel_plan` text COMMENT '旅游计划',  -- 新增旅游计划景点字段
-  `popularity` int NOT NULL DEFAULT 0 COMMENT '队伍热度统计', -- 新增热度统计字段
-  `view_count` int NOT NULL DEFAULT 0 COMMENT '查看次数',
-  `apply_count` int NOT NULL DEFAULT 0 COMMENT '入队申请次数',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
 -- 插入 team 表的示例数据
-INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1, '', 7, 0, 4);
-INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 2, 1, 2, '', 6, 0, 3);
-INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 2, 1, 3, '', 5, 0, 2);
+INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1, '');
+INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 2, 1, 2, '');
+INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 2, 1, 3, '');
 
 -- 创建 user 表
 CREATE TABLE `user`  (
@@ -104,31 +101,3 @@ CREATE TABLE `notification` (
   `link` varchar(200) DEFAULT NULL COMMENT '链接',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
-
--- 添加 team 表的外键约束
-ALTER TABLE `team`
-ADD CONSTRAINT `fk_team_public_user`
-FOREIGN KEY (`public_id`) REFERENCES `user` (`id`),
-ADD CONSTRAINT `fk_team_admin_user`
-FOREIGN KEY (`admin_id`) REFERENCES `user` (`id`);
-
--- 添加 user_team 表的外键约束
-ALTER TABLE `user_team`
-ADD CONSTRAINT `fk_user_team_team`
-FOREIGN KEY (`team_id`) REFERENCES `team` (`id`),
-ADD CONSTRAINT `fk_user_team_user`
-FOREIGN KEY (`join_user_id`) REFERENCES `user` (`id`);
-
--- 添加 invitation 表的外键约束
-ALTER TABLE `invitation`
-ADD CONSTRAINT `fk_invitation_team`
-FOREIGN KEY (`team_id`) REFERENCES `team` (`id`),
-ADD CONSTRAINT `fk_invitation_inviter_user`
-FOREIGN KEY (`inviter_id`) REFERENCES `user` (`id`),
-ADD CONSTRAINT `fk_invitation_invitee_user`
-FOREIGN KEY (`invitee_id`) REFERENCES `user` (`id`);
-
--- 添加 notification 表的外键约束
-ALTER TABLE `notification`
-ADD CONSTRAINT `fk_notification_user`
-FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);

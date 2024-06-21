@@ -1,6 +1,3 @@
-import json
-
-import pymysql
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -15,7 +12,7 @@ from models import db, User, Team, team_membership, Invitation, Attractions, Not
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/lvu'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/lvu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -50,8 +47,7 @@ def index():
         elif membership.audit_status == 0:
             pending_teams.append(team)
 
-    return render_template('index.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams,
-                           username=username)
+    return render_template('index.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
 
 
 # 用户注册
@@ -150,7 +146,7 @@ def create_team():
             current_members=1,  # 创建时包含队伍创建者
             public_id=user.id,  # 记录队伍创建者
             admin_id=user.id,  # 初始化管理员为队伍创建者
-            travel_plan=None  # 初始化旅行计划
+            travel_plan=None    # 初始化旅行计划
         )
         db.session.add(team)
         db.session.flush()  # 刷新 session 以获取新创建的 team.id
@@ -161,8 +157,7 @@ def create_team():
                 'INSERT INTO user_team (team_id, join_user_id, audit_status) VALUES (:team_id, :user_id, :audit_status)'),
             {'team_id': team.id, 'user_id': user.id, 'audit_status': 1}
         )
-        # 更新队伍热度
-        team.update_popularity()
+
         db.session.commit()
         flash('您的队伍已创建！', 'success')
         return redirect(url_for('my_manage_team'))
@@ -192,8 +187,7 @@ def sending_requests():
         else:
             deny_teams.append(team)
 
-    return render_template('page/sending_requests.html', teams=teams, approved_teams=approved_teams,
-                           pending_teams=pending_teams, deny_teams=deny_teams, username=username)
+    return render_template('page/sending_requests.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, deny_teams=deny_teams, username=username)
 
 
 # 根据条件筛选队伍
@@ -241,10 +235,12 @@ def join_team(team_id):
     user = current_user
 
     if team.current_members >= team.max_members:
-        return jsonify({'status': 'error', 'message': '该队伍已满员。'})
+        flash('该队伍已满员。')
+        return redirect(url_for('joinable_teams'))
 
     if team in user.teams:
-        return jsonify({'status': 'error', 'message': '您已申请加入该队伍。'})
+        flash('您已申请加入该队伍。')
+        return redirect(url_for('joinable_teams'))
 
     # 更改实现逻辑，检查是否存在对应的申请记录
     membership = db.session.query(team_membership).filter_by(
@@ -258,27 +254,25 @@ def join_team(team_id):
                 team_membership.c.team_id == team_id
             ).values(audit_status=0)
             db.session.execute(stmt)
-            # 队伍热度统计
-            team.apply_count += 1
-            team.update_popularity()
+
             db.session.commit()
+            flash('成功向队伍管理员发送入队申请', 'success')
+
             add_notification(
                 team.admin_id, f"你收到一条来自 {current_user.username} 的入队申请。", url_for('team_requests'))
         else:
-            return jsonify({'status': 'error', 'message': '您已经在该队伍中！'})
+            flash('您已经在该队伍中！')
     else:
         # 如果没找到，则新增一条记录
         ins = team_membership.insert().values(
             join_user_id=user.id, team_id=team.id, audit_status=0)
         db.session.execute(ins)
-        # 队伍热度统计
-        team.apply_count += 1
-        team.update_popularity()
         db.session.commit()
+        flash('成功向队伍管理员发送入队申请', 'success')
         add_notification(
             team.admin_id, f"你收到一条来自 {current_user.username} 的入队申请。", url_for('team_requests'))
 
-    return jsonify({'status': 'success', 'message': '成功向队伍管理员发送入队申请'})
+    return redirect(url_for('joinable_teams'))
 
 
 # 同意加入队伍申请
@@ -302,8 +296,6 @@ def approve_request(join_user_id, team_id):
     ).values(audit_status=1)
     db.session.execute(stmt)
     team.current_members += 1
-    # 更新队伍热度
-    team.update_popularity()
     db.session.commit()
 
     add_notification(join_user_id, f"你的入队申请被 {current_user.username} 批准。", url_for(
@@ -423,13 +415,8 @@ def view_team(team_id):
     ).order_by(
         cast(func.substring_index(Attractions.排名, '第', -1), Integer)
     ).limit(5).all())
-    # 队伍热度更新
-    team.view_count += 1
-    team.update_popularity()
-    db.session.commit()
 
-    return render_template('page/view_team.html', team=team, approved_members=approved_members,
-                           top_attractions=top_attractions)
+    return render_template('page/view_team.html', team=team, approved_members=approved_members, top_attractions=top_attractions)
 
 
 # 添加旅行计划
@@ -479,8 +466,6 @@ def leave_team(team_id):
     db.session.commit()
     # 更新队伍中的成员数量
     team.current_members -= 1
-    # 队伍热度更新
-    team.update_popularity()
     db.session.commit()
     flash('成功退出队伍', 'success')
 
@@ -510,8 +495,7 @@ def my_manage_team():
             approved_teams.append(team)
         elif membership.audit_status == 0:
             pending_teams.append(team)
-    return render_template('page/my_manage_team.html', teams=teams, approved_teams=approved_teams,
-                           pending_teams=pending_teams)
+    return render_template('page/my_manage_team.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams)
 
 
 # 加入的队伍界面
@@ -533,96 +517,13 @@ def my_join_team():
             approved_teams.append(team)
         elif membership.audit_status == 0:
             pending_teams.append(team)
-    return render_template('page/my_join_team.html', teams=teams, approved_teams=approved_teams,
-                           pending_teams=pending_teams)
+    return render_template('page/my_join_team.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams)
 
 
-def Search(user_id, destination=None, departure_location=None, travel_mode=None, team_type=None, max_travel_budget=None):
-    conn = pymysql.connect(host='localhost',  # 主机
-                           user='root',  # 用户
-                           port=3306,  # 端口
-                           password='12345',  # 密码
-                           charset='utf8',  # 编码
-                           database='lvu'  # 数据库名称
-                           )
-
-    cursor = conn.cursor()
-
-    # 构建查询条件
-    conditions = [
-        "t.id NOT IN (SELECT ut.team_id FROM user_team ut WHERE ut.join_user_id = %s AND ut.audit_status = 1)"]
-    params = [user_id]
-
-    if destination:
-        conditions.append("t.destination = %s")
-        params.append(destination)
-    if departure_location:
-        conditions.append("t.departure_location = %s")
-        params.append(departure_location)
-    if travel_mode:
-        conditions.append("t.travel_mode = %s")
-        params.append(travel_mode)
-    if team_type:
-        conditions.append("t.team_type = %s")
-        params.append(team_type)
-    if max_travel_budget:
-        conditions.append("t.travel_budget <= %s")
-        params.append(max_travel_budget)
-
-    # 生成 WHERE 子句
-    where_clause = " AND ".join(conditions)
-
-    # 查询数据库中的数据
-    query = f"""
-    SELECT t.id, t.popularity, t.destination, t.departure_location, t.travel_mode, t.team_type, t.travel_time, t.travel_budget, t.max_members, t.current_members
-    FROM team t
-    WHERE {where_clause}
-    """
-
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-
-    # 组织数据格式
-    data = []
-    for row in rows:
-        data.append({
-            "id": row[0],
-            "popularity": row[1],
-            "destination": row[2],
-            "departure_location": row[3],
-            "travel_mode": row[4],
-            "team_type": row[5],
-            "travel_time": row[6],
-            "travel_budget": row[7],
-            "max_members": row[8],
-            "current_members": row[9]
-        })
-
-    # 创建最终的JSON结构
-    result = {
-        "code": 0,
-        "msg": "",
-        "count": len(data),
-        "data": data
-    }
-
-    # 将结果写入JSON文件
-    with open('static/api/table.json', 'w', encoding='utf-8') as json_file:
-        json.dump(result, json_file, ensure_ascii=False, indent=4)
-
-    # 关闭数据库连接
-    conn.close()
-
-
-# 可加入队伍界面
+# 加入队伍界面
 @app.route('/joinable_teams', methods=['GET'])
 @login_required
 def joinable_teams():
-    destination = request.args.get('destination')
-    departure_location = request.args.get('departure_location')
-    travel_mode = request.args.get('travel_mode')
-    team_type = request.args.get('team_type')
-    max_travel_budget = request.args.get('max_travel_budget')
     teams = Team.query.all()
     approved_teams = []
     pending_teams = []
@@ -639,11 +540,8 @@ def joinable_teams():
             approved_teams.append(team)
         elif membership.audit_status == 0:
             pending_teams.append(team)
-    Search(user_id=current_user.id, destination=destination, departure_location=departure_location,
-           travel_mode=travel_mode, team_type=team_type, max_travel_budget=max_travel_budget)
 
-    return render_template('page/joinable_teams.html', teams=teams, approved_teams=approved_teams,
-                           pending_teams=pending_teams, username=username)
+    return render_template('page/joinable_teams.html', teams=teams, approved_teams=approved_teams, pending_teams=pending_teams, username=username)
 
 
 # 管理员更改队伍信息
@@ -653,6 +551,7 @@ def manage_team(team_id):
     team = Team.query.get_or_404(team_id)
 
     if team.admin_id != current_user.id:
+        flash('您没有权限管理此队伍。', 'danger')
         return redirect(url_for('my_manage_team'))
 
     form = ManageTeamForm(obj=team)
@@ -688,35 +587,6 @@ def manage_team(team_id):
     return render_template('page/manage_team.html', team=team, form=form, members=members)
 
 
-@app.route('/manage_team/update', methods=['POST'])
-def update_team():
-    team_id = request.form.get('id')
-    destination = request.form.get('destination')
-    departure_location = request.form.get('departure_location')
-    travel_mode = request.form.get('travel_mode')
-    team_type = request.form.get('team_type')
-    travel_time = request.form.get('travel_time')
-    travel_budget = request.form.get('travel_budget')
-    max_members = request.form.get('max_members')
-
-    # 根据 team_id 查询数据库中的队伍记录
-    team = Team.query.get(team_id)
-    if not team:
-        return 'Team not found', 404
-
-    # 更新队伍信息
-    team.destination = destination
-    team.departure_location = departure_location
-    team.travel_mode = travel_mode
-    team.team_type = team_type
-    team.travel_time = travel_time
-    team.travel_budget = travel_budget
-    team.max_members = max_members
-
-    db.session.commit()
-    return 'Team updated successfully'
-
-
 # 管理员移除队员
 @app.route('/remove_member/<int:team_id>/<int:user_id>', methods=['POST'])
 @login_required
@@ -737,12 +607,10 @@ def remove_member(team_id, user_id):
     if user in team.members:
         team.members.remove(user)
         team.current_members -= 1
-        # 队伍热度更新
-        team.update_popularity()
         db.session.commit()
         flash('成员已成功移除！', 'success')
         add_notification(
-            user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_team', team_id=team.id))
+            user.id, f"你被移出前往 {team.destination} 的队伍。", url_for('view_team'))
 
     return redirect(url_for('manage_team', team_id=team_id))
 
@@ -753,6 +621,8 @@ def remove_member(team_id, user_id):
 def transfer_admin(team_id, user_id):
     team = Team.query.get_or_404(team_id)
     if team.admin_id != current_user.id:
+        flash(
+            '您没有权限转移此队伍的管理员权限。', 'danger')
         return redirect(url_for('manage_team', team_id=team.id))
 
     new_admin = User.query.get_or_404(user_id)
@@ -883,8 +753,6 @@ def handle_invitation():
             invitation.status = 'accepted'
             add_notification(
                 inviter_id, f"你的邀请被 {current_user.username} 接受了。", url_for('sent_invitations'))
-            # 队伍热度更新
-            team.update_popularity()
             db.session.commit()
             return jsonify({'success': True, 'message': '邀请已接受'})
         else:

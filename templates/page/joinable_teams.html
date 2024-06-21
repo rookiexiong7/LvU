@@ -1,192 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>layui</title>
-    <meta name="renderer" content="webkit">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='lib/layui-v2.6.3/css/layui.css') }}" media="all">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}" media="all">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- 引入 Bootstrap CSS 实现弹窗 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-info {
+            flex-grow: 1;
+        }
+
+        form {
+            margin-left: 10px;
+        }
+
+        a,
+        button {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+
+        form label {
+            margin-right: 5px;
+        }
+
+        form select,
+        form input[type="text"] {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="layuimini-container">
-        <div class="layuimini-main">
-            <fieldset class="table-search-fieldset">
-                <legend>筛选可加入队伍</legend>
-                <div style="margin: 10px 10px 10px 10px">
-                    <form class="layui-form layui-form-pane" action="" method="GET">
-                        <div class="layui-form-item">
-                            <div class="layui-inline">
-                                <label class="layui-form-label" for="destination">目的地</label>
-                                <div class="layui-input-inline">
-                                    <input type="text" name="destination" id="destination" autocomplete="off"
-                                        class="layui-input">
-                                </div>
-                            </div>
-                            <div class="layui-inline">
-                                <label class="layui-form-label" for="departure_location">出发地点</label>
-                                <div class="layui-input-inline">
-                                    <input type="text" name="departure_location" id="departure_location"
-                                        autocomplete="off" class="layui-input">
-                                </div>
-                            </div>
-                            <div class="layui-inline">
-                                <label class="layui-form-label" for="travel_mode">出行方式</label>
-                                <div class="layui-input-inline">
-                                    <select name="travel_mode" id="travel_mode">
-                                        <option value="">无要求</option>
-                                        <option value="飞机">飞机</option>
-                                        <option value="火车">火车</option>
-                                        <option value="大巴">大巴</option>
-                                        <option value="私家车">私家车</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="layui-inline">
-                                <label class="layui-form-label" for="team_type">队伍类型</label>
-                                <div class="layui-input-inline">
-                                    <select name="team_type" id="team_type">
-                                        <option value="">无要求</option>
-                                        <option value="家庭游">家庭游</option>
-                                        <option value="自驾游">自驾游</option>
-                                        <option value="跟团游">跟团游</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="layui-inline">
-                                <label class="layui-form-label" for="max_travel_budget">旅游预算</label>
-                                <div class="layui-input-inline">
-                                    <input type="number" name="max_travel_budget" id="max_travel_budget" min="0"
-                                        class="layui-input">
-                                </div>
-                            </div>
-                            <div class="layui-inline">
-                                <button type="submit" class="layui-btn layui-btn-primary"><i class="layui-icon"></i> 搜
-                                    索</button>
-                            </div>
-                        </div>
-                    </form>
-
+    <!-- 弹窗模态框 -->
+    <div class="modal fade" id="flashModal" tabindex="-1" role="dialog" aria-labelledby="flashModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="关闭">
+                        <span aria-hidden="true">&times</span>
+                    </button>
                 </div>
-            </fieldset>
-
-            <script type="text/html" id="toolbarDemo">
-                <div class="layui-btn-container">
+                <div class="modal-body">
+                    <ul class="flashes">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+                    </ul>
                 </div>
-            </script>
-
-            <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
-
-            <script type="text/html" id="currentTableBar">
-                <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">加入</a>
-                <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">查看</a>
-            </script>
-
-            <script src="{{ url_for('static', filename='/lib/layui-v2.6.3/layui.js') }}" charset="utf-8"></script>
-            <script>
-                layui.use(['form', 'table', 'layer'], function () {
-                    var $ = layui.jquery,
-                        form = layui.form,
-                        table = layui.table,
-                        layer = layui.layer;
-
-                    // 渲染表格
-                    var tableIns = table.render({
-                        elem: '#currentTableId',
-                        url: "{{ url_for('static', filename='api/table.json') }}", // 修改为后端提供数据的接口
-                        clearUrl: "{{ url_for('static', filename='api/clear.json') }}", // 缓存清理接口
-                        toolbar: '#toolbarDemo',
-                        defaultToolbar: ['filter', 'exports', 'print', {
-                            title: '提示',
-                            layEvent: 'LAYTABLE_TIPS',
-                            icon: 'layui-icon-tips'
-                        }],
-                        cols: [[
-                            { type: "checkbox", width: 50 },
-                            { field: 'id', width: 80, title: 'ID', sort: true },
-                            { field: 'popularity', title: '队伍热度', sort: true },
-                            { field: 'destination', title: '目的地', sort: true },
-                            { field: 'departure_location', title: '出发地点', sort: true },
-                            { field: 'travel_mode', title: '出行方式', sort: true },
-                            { field: 'team_type', title: '队伍类型', sort: true },
-                            { field: 'travel_time', title: '出行时间', sort: true },
-                            { field: 'travel_budget', title: '旅游预算', sort: true },
-                            { field: 'max_members', title: '最大人数', sort: true },
-                            { field: 'current_members', title: '当前人数', sort: true },
-                            { title: '操作', minWidth: 150, toolbar: '#currentTableBar', align: "center" }
-                        ]],
-                        limits: [10, 15, 20, 25, 50, 100],
-                        limit: 15,
-                        page: true,
-                        skin: 'line'
-                    });
-
-                    // 监听搜索操作
-                    form.on('submit(data-search-btn)', function (data) {
-                        var result = JSON.stringify(data.field);
-                        layer.alert(result, {
-                            title: '最终的搜索信息'
-                        });
-
-                        //执行搜索重载
-                        table.reload('currentTableId', {
-                            page: {
-                                curr: 1
-                            },
-                            where: {
-                                searchParams: result
-                            }
-                        }, 'data');
-
-                        return false;
-                    });
-
-                    //监听表格复选框选择
-                    table.on('checkbox(currentTableFilter)', function (obj) {
-                        console.log(obj)
-                    });
-
-                    // 监听行工具事件
-                    table.on('tool(currentTableFilter)', function (obj) {
-                        var data = obj.data;
-                        if (obj.event === 'edit') {
-                            var teamId = data.id; // 获取当前行的team_id
-                            $.ajax({
-                                url: '/join_team/' + teamId,
-                                type: 'POST',
-                                success: function (response) {
-                                    if (response.status === 'success') {
-                                        layer.msg(response.message, { icon: 1 });
-                                    } else {
-                                        layer.msg(response.message, { icon: 2 });
-                                    }
-                                },
-                                error: function (xhr, status, error) {
-                                    layer.msg('请求失败，请稍后重试');
-                                }
-                            });
-                        } else if (obj.event === 'delete') {
-                            var teamId = data.id; // 获取当前行的team_id
-                            $.ajax({
-                                url: '/team/' + teamId,
-                                type: 'GET',
-                                success: function (response) {
-                                    window.location.href = '/team/' + teamId;
-                                },
-                                error: function (xhr, status, error) {
-                                    layer.msg('请求失败，请稍后重试');
-                                }
-                            });
-                        }
-                    });
-
-                });
-            </script>
+            </div>
         </div>
     </div>
+
+    <h2>筛选可加入队伍</h2>
+    <!-- 搜索表单 -->
+    <form method="POST" action="{{ url_for('search_teams') }}">
+        <label for="destination">目的地：</label>
+        <input type="text" name="destination" id="destination">
+
+        <label for="departure_location">出发地点：</label>
+        <input type="text" name="departure_location" id="departure_location">
+
+        <label for="travel_mode">出行方式：</label>
+        <select name="travel_mode" id="travel_mode">
+            <option value="">无要求</option>
+            <option value="飞机">飞机</option>
+            <option value="火车">火车</option>
+            <option value="大巴">大巴</option>
+            <option value="私家车">私家车</option>
+        </select>
+
+        <label for="team_type">队伍类型：</label>
+        <select name="team_type" id="team_type">
+            <option value="">无要求</option>
+            <option value="家庭游">家庭游</option>
+            <option value="自驾游">自驾游</option>
+            <option value="跟团游">跟团游</option>
+        </select>
+
+        <label for="max_travel_budget">最高旅游预算：</label>
+        <input type="number" name="max_travel_budget" id="max_travel_budget" min="0" placeholder="最高旅游预算">
+
+        <button type="submit">搜索</button>
+    </form>
+
+    <h2>所有可加入队伍</h2>
+    <ul>
+        {% for team in teams if team.admin_id != current_user.id and team not in current_user.teams %}
+        <li>
+            <span class="team-info">{{ team.destination }} ({{ team.current_members }}/{{ team.max_members }})</span>
+            <form method="POST" action="{{ url_for('join_team', team_id=team.id) }}">
+                {% if team.current_members >= team.max_members %}
+                <button type="submit" disabled>加入</button>
+                {% else %}
+                <button type="submit">加入</button>
+                {% endif %}
+            </form>
+            <a href="{{ url_for('view_team', team_id=team.id) }}">查看队伍信息</a> <!-- 新添加的查看队伍信息按钮 -->
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- 引入 Bootstrap JS 和 jQuery -->
+    <script src="{{ url_for('static', filename='js/jquery-3.5.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src=" {{ url_for('static', filename='js/bootstrap.min.js' ) }}"></script>
+    <script>
+        $(document).ready(function () {
+            if ($('.flashes li').length > 0) {
+                $('#flashModal').modal('show');
+            }
+        });
+    </script>
 </body>
 
 </html>
