@@ -16,13 +16,16 @@ CREATE TABLE `team`  (
   `public_id` int NOT NULL COMMENT '发起人id（关联user表的id）',
   `admin_id` int NULL DEFAULT 1 COMMENT '管理员id（关联user表的id）',
   `travel_plan` text COMMENT '旅游计划',  -- 新增旅游计划景点字段
+  `popularity` int NOT NULL DEFAULT 0 COMMENT '队伍热度统计', -- 新增热度统计字段
+  `view_count` int NOT NULL DEFAULT 0 COMMENT '查看次数',
+  `apply_count` int NOT NULL DEFAULT 0 COMMENT '入队申请次数',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
 -- 插入 team 表的示例数据
-INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1, '');
-INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 2, 1, 2, '');
-INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 2, 1, 3, '');
+INSERT INTO `team` VALUES (1, '北京', '上海', '飞机', '家庭游', '2024-06-10', '5000', 5, 2, 1, 1, '', 7, 0, 4);
+INSERT INTO `team` VALUES (2, '南京', '广州', '私家车', '自驾游', '2024-06-15', '3000', 4, 2, 1, 2, '', 6, 0, 3);
+INSERT INTO `team` VALUES (3, '厦门', '深圳', '大巴', '跟团游', '2024-06-20', '2000', 7, 2, 1, 3, '', 5, 0, 2);
 
 -- 创建 user 表
 CREATE TABLE `user`  (

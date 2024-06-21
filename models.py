@@ -43,8 +43,15 @@ class Team(db.Model):
     public_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     travel_plan = db.Column(db.Text)  # 新增旅游计划景点字段
+    popularity = db.Column(db.Integer, default=0, nullable=False)  # 新增队伍热度统计字段
+    view_count = db.Column(db.Integer, default=0, nullable=False)  # 新增查看次数字段
+    apply_count = db.Column(db.Integer, default=0, nullable=False)  # 新增入队申请次数字段
     team_admin = db.relationship('User', foreign_keys=[admin_id])
 
+    # 实时计算队伍热度
+    def update_popularity(self):
+        self.popularity = 0.5 * self.view_count + 1.0 * self.apply_count + 1.5 * self.current_members
+        db.session.commit()
     # # 定义了两个关系属性 admin 和 public, 其分别表示了队伍的管理员和创建者。
     # admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('owned_teams', lazy=True))
     # public = db.relationship('User', foreign_keys=[public_id], backref=db.backref('created_teams', lazy=True))

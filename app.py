@@ -15,7 +15,7 @@ from models import db, User, Team, team_membership, Invitation, Attractions, Not
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/lvu'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/lvu'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -161,7 +161,8 @@ def create_team():
                 'INSERT INTO user_team (team_id, join_user_id, audit_status) VALUES (:team_id, :user_id, :audit_status)'),
             {'team_id': team.id, 'user_id': user.id, 'audit_status': 1}
         )
-
+        # 更新队伍热度
+        team.update_popularity()
         db.session.commit()
         flash('您的队伍已创建！', 'success')
         return redirect(url_for('my_manage_team'))
@@ -257,6 +258,9 @@ def join_team(team_id):
                 team_membership.c.team_id == team_id
             ).values(audit_status=0)
             db.session.execute(stmt)
+            # 队伍热度统计
+            team.apply_count += 1
+            team.update_popularity()
             db.session.commit()
             add_notification(
                 team.admin_id, f"你收到一条来自 {current_user.username} 的入队申请。", url_for('team_requests'))
@@ -267,6 +271,9 @@ def join_team(team_id):
         ins = team_membership.insert().values(
             join_user_id=user.id, team_id=team.id, audit_status=0)
         db.session.execute(ins)
+        # 队伍热度统计
+        team.apply_count += 1
+        team.update_popularity()
         db.session.commit()
         add_notification(
             team.admin_id, f"你收到一条来自 {current_user.username} 的入队申请。", url_for('team_requests'))
@@ -295,6 +302,8 @@ def approve_request(join_user_id, team_id):
     ).values(audit_status=1)
     db.session.execute(stmt)
     team.current_members += 1
+    # 更新队伍热度
+    team.update_popularity()
     db.session.commit()
 
     add_notification(join_user_id, f"你的入队申请被 {current_user.username} 批准。", url_for(
@@ -414,6 +423,10 @@ def view_team(team_id):
     ).order_by(
         cast(func.substring_index(Attractions.排名, '第', -1), Integer)
     ).limit(5).all())
+    # 队伍热度更新
+    team.view_count += 1
+    team.update_popularity()
+    db.session.commit()
 
     return render_template('page/view_team.html', team=team, approved_members=approved_members,
                            top_attractions=top_attractions)
@@ -466,6 +479,8 @@ def leave_team(team_id):
     db.session.commit()
     # 更新队伍中的成员数量
     team.current_members -= 1
+    # 队伍热度更新
+    team.update_popularity()
     db.session.commit()
     flash('成功退出队伍', 'success')
 
@@ -526,7 +541,7 @@ def Search(user_id, destination=None, departure_location=None, travel_mode=None,
     conn = pymysql.connect(host='localhost',  # 主机
                            user='root',  # 用户
                            port=3306,  # 端口
-                           password='123456',  # 密码
+                           password='12345',  # 密码
                            charset='utf8',  # 编码
                            database='lvu'  # 数据库名称
                            )
@@ -559,7 +574,7 @@ def Search(user_id, destination=None, departure_location=None, travel_mode=None,
 
     # 查询数据库中的数据
     query = f"""
-    SELECT t.id, t.destination, t.departure_location, t.travel_mode, t.team_type, t.travel_time, t.travel_budget, t.max_members, t.current_members
+    SELECT t.id, t.popularity, t.destination, t.departure_location, t.travel_mode, t.team_type, t.travel_time, t.travel_budget, t.max_members, t.current_members
     FROM team t
     WHERE {where_clause}
     """
@@ -572,14 +587,15 @@ def Search(user_id, destination=None, departure_location=None, travel_mode=None,
     for row in rows:
         data.append({
             "id": row[0],
-            "destination": row[1],
-            "departure_location": row[2],
-            "travel_mode": row[3],
-            "team_type": row[4],
-            "travel_time": row[5],
-            "travel_budget": row[6],
-            "max_members": row[7],
-            "current_members": row[8]
+            "popularity": row[1],
+            "destination": row[2],
+            "departure_location": row[3],
+            "travel_mode": row[4],
+            "team_type": row[5],
+            "travel_time": row[6],
+            "travel_budget": row[7],
+            "max_members": row[8],
+            "current_members": row[9]
         })
 
     # 创建最终的JSON结构
@@ -598,7 +614,7 @@ def Search(user_id, destination=None, departure_location=None, travel_mode=None,
     conn.close()
 
 
-# 加入队伍界面
+# 可加入队伍界面
 @app.route('/joinable_teams', methods=['GET'])
 @login_required
 def joinable_teams():
@@ -721,6 +737,8 @@ def remove_member(team_id, user_id):
     if user in team.members:
         team.members.remove(user)
         team.current_members -= 1
+        # 队伍热度更新
+        team.update_popularity()
         db.session.commit()
         flash('成员已成功移除！', 'success')
         add_notification(
@@ -865,6 +883,8 @@ def handle_invitation():
             invitation.status = 'accepted'
             add_notification(
                 inviter_id, f"你的邀请被 {current_user.username} 接受了。", url_for('sent_invitations'))
+            # 队伍热度更新
+            team.update_popularity()
             db.session.commit()
             return jsonify({'success': True, 'message': '邀请已接受'})
         else:
