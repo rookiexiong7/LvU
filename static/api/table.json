@@ -1,6 +1,31 @@
 {
     "code": 0,
     "msg": "",
-    "count": 0,
-    "data": []
+    "count": 2,
+    "data": [
+        {
+            "id": 2,
+            "popularity": 5,
+            "destination": "南京",
+            "departure_location": "广州",
+            "travel_mode": "私家车",
+            "team_type": "自驾游",
+            "travel_time": "2024-06-15",
+            "travel_budget": 3000,
+            "max_members": 4,
+            "current_members": 1
+        },
+        {
+            "id": 3,
+            "popularity": 4,
+            "destination": "厦门",
+            "departure_location": "深圳",
+            "travel_mode": "大巴",
+            "team_type": "跟团游",
+            "travel_time": "2024-06-20",
+            "travel_budget": 2000,
+            "max_members": 7,
+            "current_members": 1
+        }
+    ]
 }
