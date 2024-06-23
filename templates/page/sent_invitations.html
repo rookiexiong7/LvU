@@ -18,17 +18,12 @@
             color: #333;
         }
 
-        .invitations-info {
+        .invitation-list {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
-        }
-
-        .invitations-info p {
-            margin: 5px 0;
-            color: #555;
         }
 
         ul {
@@ -58,11 +53,7 @@
             text-align: center;
         }
 
-        .status-label {
-            font-weight: bold;
-        }
-
-        a {
+        button {
             display: inline-block;
             margin-right: 10px;
             padding: 10px 15px;
@@ -74,7 +65,12 @@
             text-align: center;
         }
 
-        a:hover {
+        button[disabled] {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:not([disabled]) {
             background-color: #0056b3;
         }
     </style>
