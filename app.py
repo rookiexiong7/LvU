@@ -15,7 +15,7 @@ from models import db, User, Team, team_membership, Invitation, Attractions, Not
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 # 配置 MySQL 数据库连接 密码为本地root用户密码
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:sq2-jnQ2%twI@localhost/LvU'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:12345@localhost/LvU'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -553,7 +553,7 @@ def Search(user_id, destination=None, departure_location=None, travel_mode=None,
     conn = pymysql.connect(host='localhost',  # 主机
                            user='root',  # 用户
                            port=3306,  # 端口
-                           password='sq2-jnQ2%twI',  # 密码
+                           password='12345',  # 密码
                            charset='utf8',  # 编码
                            database='LvU'  # 数据库名称
                            )
