@@ -67,7 +67,7 @@
 
 ## 系统开发技术
 
-- **编程语言**：**Python****，****HTML****，****JavaScript**
+- **编程语言**：**Python**，**HTML**，**JavaScript**
 
 - **开发环境：**
 
